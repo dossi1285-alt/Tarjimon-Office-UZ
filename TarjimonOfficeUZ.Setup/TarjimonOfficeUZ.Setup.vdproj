@@ -1,0 +1,38 @@
+﻿"DeployProject"
+{
+"VSVersion" = "3:800"
+"ProjectType" = "8:{978C614F-708E-4E1A-B201-565925725DBA}"
+"IsWebType" = "8:FALSE"
+"ProjectName" = "8:TarjimonOfficeUZ.Setup"
+"LanguageId" = "3:1049"
+"CodePage" = "3:1251"
+"UILanguageId" = "3:1049"
+"SccProjectName" = "8:"
+"SccLocalPath" = "8:"
+"SccAuxPath" = "8:"
+"SccProvider" = "8:"
+    "Hierarchy"
+    {
+        "Entry" { "MsmKey" = "8:_26E47F9260D3D993B2A3653C78723BF5" "OwnerKey" = "8:_5842C61315664184B0EAF373A394AFB7" "MsmSig" = "8:_UNDEFINED" }
+        "Entry" { "MsmKey" = "8:_5842C61315664184B0EAF373A394AFB7" "OwnerKey" = "8:_UNDEFINED" "MsmSig" = "8:_UNDEFINED" }
+    }
+    "Configurations"
+    {
+        "Debug" { "DisplayName" = "8:Debug" "IsDebugOnly" = "11:TRUE" "IsReleaseOnly" = "11:FALSE" "OutputFilename" = "8:Debug\\TarjimonOfficeUZ.Setup.msi" }
+        "Release" { "DisplayName" = "8:Release" "IsDebugOnly" = "11:FALSE" "IsReleaseOnly" = "11:TRUE" "OutputFilename" = "8:Release\\TarjimonOfficeUZ.Setup.msi" }
+    }
+    "Deployable"
+    {
+        "Product"
+        {
+        "Name" = "8:Microsoft Visual Studio"
+        "ProductName" = "8:TarjimonOfficeUZ.Setup"
+        "ProductCode" = "8:{EF08E22E-AFAD-45D2-BB8F-4099846EDB5E}"
+        "PackageCode" = "8:{5CC1B90A-E0B6-4070-941B-0C7A3368F321}"
+        "UpgradeCode" = "8:{D706FD1C-A660-40EF-B3BB-CB796F79FC7C}"
+        "ProductVersion" = "8:1.0.0"
+        "Manufacturer" = "8:Default Company Name"
+        "Title" = "8:TarjimonOfficeUZ.Setup"
+        }
+    }
+}
