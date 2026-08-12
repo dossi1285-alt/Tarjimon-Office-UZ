@@ -1,10 +1,32 @@
-# Mavjud loyiha importi
+# Tarjimon Office UZ — loyiha importi
 
 ## Manba
 
 Foydalanuvchi taqdim etgan Visual Studio loyihasi arxivi tekshirildi.
 
-## Aniqlangan asosiy loyihalar
+## GitHub import qoidalari
+
+Repositoryga haqiqiy source va loyiha konfiguratsiyasi kiritiladi. Visual Studio/build artefaktlari kiritilmaydi.
+
+### Kiritilmaydi
+
+- `.vs/`
+- `bin/`
+- `obj/`
+- `*.pfx` va boshqa signing key fayllari
+- vaqtinchalik `.user`, `.suo` kabi lokal sozlamalar
+- tayyor build artefaktlari (`.msi`, `.exe`) source repositoryga qo‘shilmaydi
+
+### Kiritiladi
+
+- `.cs`
+- `.csproj`
+- `.slnx`
+- `.vdproj`
+- `.resx`
+- boshqa source/resource/config fayllari
+
+## Asosiy loyihalar
 
 - `TarjimonOfficeUZ.Core` — transliteratsiya yadrosi.
 - `TarjimonOfficeUZ.Shared` — umumiy sozlamalar va UI yordamchi qismlari.
@@ -15,27 +37,10 @@ Foydalanuvchi taqdim etgan Visual Studio loyihasi arxivi tekshirildi.
 
 ## Transliteratsiya yadrosi
 
-`TarjimonOfficeUZ.Core/Translation` ichida quyidagi asosiy komponentlar mavjud:
-
-- `AlphabetRule`
-- `CurrentAlphabet`
-- `TranslationDirection`
-- `TranslationResult`
-- `ReverseTranslationCache`
-- `Transliterator`
+`TarjimonOfficeUZ.Core/Translation` ichida `AlphabetRule`, `CurrentAlphabet`, `TranslationDirection`, `TranslationResult`, `ReverseTranslationCache` va `Transliterator` kabi komponentlar mavjud.
 
 `Transliterator` lotin ↔ kirill o‘girishni bajaradi va mapping ma’lumotlarini ham qaytaradi.
 
-## Word va Excel
+## Hozirgi ish
 
-Word qo‘shimchasida Ribbon tugmalari orqali lotin → kirill va kirill → lotin amallari chaqiriladi.
-
-Excel qo‘shimchasida tanlangan kataklar bo‘yicha transliteratsiya bajariladi; formulali kataklar o‘tkazib yuboriladi.
-
-## GitHub'ga joylash qoidasi
-
-Visual Studio tomonidan yaratiladigan `.vs`, `bin` va `obj` kataloglari repositoryga kiritilmasligi kerak.
-
-Arxivdagi `.pfx` vaqtinchalik kalit fayllari ham repositoryga kiritilmaydi. Ular imzolash kalitlari bilan bog‘liq bo‘lishi mumkin va GitHub'da saqlash xavfsiz emas.
-
-Installer va designer/resx fayllari mavjud loyiha tarkibining bir qismi bo‘lib, keyingi import bosqichida alohida ko‘rib chiqiladi.
+GitHub repositoryga loyiha fayllari foydalanuvchi kompyuteridan bosqichma-bosqich import qilinmoqda. Import tugagach, ZIP va GitHub tree taqqoslanib, yetishmayotgan yoki ortiqcha fayllar aniqlanadi.
