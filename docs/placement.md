@@ -1,1 +1,0 @@
-Uploaded project files are retained from their GitHub-uploaded blobs and placed according to the solution paths.

@@ -1,1 +1,0 @@
-Repository structure cleanup in progress: uploaded project files are being placed under their solution folders without changing their original contents.
