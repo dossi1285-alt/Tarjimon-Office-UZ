@@ -4,18 +4,27 @@
 
 Tarjimon Office UZ — o‘zbek tilidagi matnlarni kirill va lotin yozuvlari o‘rtasida o‘girishga mo‘ljallangan Office dasturlari loyihasi.
 
+## Asosiy qismlar
+
+- `TarjimonOfficeUZ.Core` — transliteratsiya yadrosi.
+- `TarjimonOfficeUZ.Shared` — umumiy sozlamalar va yordamchi qismlar.
+- `TarjimonOfficeUZ.Word` — Word VSTO qo‘shimchasi.
+- `TarjimonOfficeUZ.Excel` — Excel VSTO qo‘shimchasi.
+- `TarjimonOfficeUZ.Tests` — testlar.
+- `TarjimonOfficeUZ.Setup` — installer.
+
 ## Rivojlantirish bosqichlari
 
-1. Konvertatsiya yadrosini (Kirill ↔ Lotin) aniqlash.
-2. Word va Excel bilan integratsiya usulini tanlash.
-3. Foydalanuvchi interfeysini ishlab chiqish.
-4. Testlar va istisno holatlarni qamrab olish.
-5. O‘rnatish (installer) va versiyalashni tashkil qilish.
+1. Mavjud source kodni to‘liq va toza import qilish.
+2. Kirill ↔ Lotin transliteratsiya yadrosini audit qilish.
+3. Word va Excel integratsiyasini tekshirish.
+4. Testlarni to‘liq tiklash va ishga tushirish.
+5. Installer va release jarayonini tartibga solish.
+
+## Repository qoidasi
+
+`.vs`, `bin`, `obj`, signing key (`.pfx`) va tayyor build artefaktlari source repositoryga kiritilmaydi.
 
 ## Hozirgi holat
 
-Repository boshlang‘ich holatda. Haqiqiy dastur kodi hali repositoryga joylanmagan.
-
-## Muhim qoida
-
-Haqiqiy mavjud kod va fayllar foydalanuvchining kompyuteridan olingandan keyingina repositoryga qo‘shiladi. Arxitektura yoki kod qismlari mavjud loyiha bilan tasdiqlanmasdan taxmin qilib yaratilmaydi.
+Mavjud loyiha source kodi foydalanuvchi kompyuteridan GitHub repositoryga bosqichma-bosqich import qilinmoqda. Import tugagach, source tree audit qilinadi.
