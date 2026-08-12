@@ -1,21 +1,38 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace TarjimonOfficeUZ.Core.Translation
 {
-    internal sealed class ReverseTranslationCache
+    public static class ReverseTranslationCache
     {
-        private readonly Dictionary<string, string> _cache = new Dictionary<string, string>();
+        public static string OriginalText { get; set; }
 
-        public bool TryGet(string key, out string value)
-        {
-            return _cache.TryGetValue(key, out value);
-        }
+        public static string TranslatedText { get; set; }
 
-        public void Set(string key, string value)
+        public static TranslationDirection Direction { get; set; }
+
+        // Oldingi tarjima qilingan Word hujjati
+        public static string DocumentKey { get; set; }
+
+        // Tarjima qilingan Range koordinatalari
+        public static int RangeStart { get; set; }
+
+        public static int RangeEnd { get; set; }
+
+        // Butun hujjat tarjima qilingan bo'lsa true
+        public static bool IsWholeDocument { get; set; }
+
+        public static void Clear()
         {
-            _cache[key] = value;
+            OriginalText = null;
+            TranslatedText = null;
+            Direction = TranslationDirection.None;
+
+            DocumentKey = null;
+
+            RangeStart = -1;
+            RangeEnd = -1;
+
+            IsWholeDocument = false;
         }
     }
 }
