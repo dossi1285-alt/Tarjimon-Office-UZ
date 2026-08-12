@@ -1,9 +1,10 @@
 <Solution>
-  <Folder Name="/">
-    <Project Path="TarjimonOfficeUZ.Core/TarjimonOfficeUZ.Core.csproj" />
-    <Project Path="TarjimonOfficeUZ.Shared/TarjimonOfficeUZ.Shared.csproj" />
-    <Project Path="TarjimonOfficeUZ.Word/TarjimonOfficeUZ.Word.csproj" />
-    <Project Path="TarjimonOfficeUZ.Excel/TarjimonOfficeUZ.Excel.csproj" />
-    <Project Path="TarjimonOfficeUZ.Tests/TarjimonOfficeUZ.Tests.csproj" />
-  </Folder>
+  <Project Path="TarjimonOfficeUZ.Core/TarjimonOfficeUZ.Core.csproj" Id="00ff6bec-7389-4745-b4f8-f4ba206db91d" />
+  <Project Path="TarjimonOfficeUZ.Excel/TarjimonOfficeUZ.Excel.csproj" Id="7cc5d6f9-d93d-4a5c-91f7-b491547c8f68" />
+  <Project Path="TarjimonOfficeUZ.Setup/TarjimonOfficeUZ.Setup.vdproj" Type="Installer">
+    <Build />
+  </Project>
+  <Project Path="TarjimonOfficeUZ.Shared/TarjimonOfficeUZ.Shared.csproj" Id="912460b2-d1dc-4727-9806-ff2fbc9ba7aa" />
+  <Project Path="TarjimonOfficeUZ.Tests/TarjimonOfficeUZ.Tests.csproj" Id="a1f28fcf-7b8c-44f9-9027-d99b2194f93b" />
+  <Project Path="TarjimonOfficeUZ.Word/TarjimonOfficeUZ.Word.csproj" Id="f15aeef8-8941-4a46-9bd1-b6ffb7ffe2f7" />
 </Solution>
