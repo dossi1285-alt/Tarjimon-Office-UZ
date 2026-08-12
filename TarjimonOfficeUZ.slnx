@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/">
+    <Project Path="TarjimonOfficeUZ.Core/TarjimonOfficeUZ.Core.csproj" />
+    <Project Path="TarjimonOfficeUZ.Shared/TarjimonOfficeUZ.Shared.csproj" />
+    <Project Path="TarjimonOfficeUZ.Word/TarjimonOfficeUZ.Word.csproj" />
+    <Project Path="TarjimonOfficeUZ.Excel/TarjimonOfficeUZ.Excel.csproj" />
+    <Project Path="TarjimonOfficeUZ.Tests/TarjimonOfficeUZ.Tests.csproj" />
+  </Folder>
+</Solution>
