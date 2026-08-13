@@ -61,3 +61,5 @@ Core + Word + Excel + Shared + Setup + Tests birgalikda tekshiriladi. Yakuniy ja
 ## Joriy ish holati
 
 **Excel 1.0 tugallandi. Keyingi asosiy vazifa — Shared modulini tekshirish va yakunlash.**
+
+<!-- AUTOSYNC-TEST: 2026-08-13 19:03 Asia/Tashkent -->
