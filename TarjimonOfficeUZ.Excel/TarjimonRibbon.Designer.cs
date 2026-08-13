@@ -35,8 +35,8 @@
             this.grpTarjimon.Name = "grpTarjimon";
 
             this.boxTarjimon.BoxStyle = Microsoft.Office.Tools.Ribbon.RibbonBoxStyle.Vertical;
-            this.boxTarjimon.Items.Add(this.btnLatinToCyrillic);
             this.boxTarjimon.Items.Add(this.btnCyrillicToLatin);
+            this.boxTarjimon.Items.Add(this.btnLatinToCyrillic);
             this.boxTarjimon.Items.Add(this.btnADX);
             this.boxTarjimon.Name = "boxTarjimon";
 
