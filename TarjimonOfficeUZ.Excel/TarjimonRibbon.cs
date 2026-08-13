@@ -22,11 +22,43 @@ namespace TarjimonOfficeUZ.Excel
         {
             return Globals.ThisAddIn.Application.Selection as Range;
         }
-        private void ConvertSelectedCells(bool latinToCyrillic)
+
+        private Range GetTranslationRange()
         {
             Range selectedRange = GetSelectedRange();
 
             if (selectedRange == null)
+                return null;
+
+            // Excel always has an active cell. A single-cell selection is treated
+            // as "no explicit range" and translates the worksheet's used range.
+            if (selectedRange.Cells.CountLarge == 1)
+            {
+                Worksheet worksheet = GetActiveWorksheet();
+
+                if (worksheet == null)
+                    return null;
+
+                Range usedRange = worksheet.UsedRange;
+
+                if (usedRange == null || usedRange.Cells.CountLarge == 1)
+                {
+                    // Keep the active cell behavior for a truly empty worksheet.
+                    return selectedRange;
+                }
+
+                return usedRange;
+            }
+
+            // Explicit multi-cell selection: translate only what the user selected.
+            return selectedRange;
+        }
+
+        private void ConvertSelectedCells(bool latinToCyrillic)
+        {
+            Range translationRange = GetTranslationRange();
+
+            if (translationRange == null)
                 return;
 
             Worksheet worksheet = GetActiveWorksheet();
@@ -43,7 +75,7 @@ namespace TarjimonOfficeUZ.Excel
                 return;
             }
 
-            foreach (Range cell in selectedRange.Cells)
+            foreach (Range cell in translationRange.Cells)
             {
                 try
                 {
@@ -81,6 +113,7 @@ namespace TarjimonOfficeUZ.Excel
                 }
             }
         }
+
         private void btnCyrillicToLatin_Click(object sender, RibbonControlEventArgs e)
         {
             ConvertSelectedCells(false);
