@@ -28,7 +28,7 @@
 
         #region Код, автоматически созданный конструктором компонентов
 
-        /// <summary>
+        /// <summary> 
         /// Требуемый метод для поддержки конструктора — не изменяйте 
         /// содержимое этого метода с помощью редактора кода.
         /// </summary>
@@ -47,7 +47,7 @@
             // 
             this.tab1.ControlId.ControlIdType = Microsoft.Office.Tools.Ribbon.RibbonControlIdType.Office;
             this.tab1.Groups.Add(this.grpTarjimon);
-            this.tab1.Label = "TabAddIns";
+            this.tab1.Label = "KL Officce uz";
             this.tab1.Name = "tab1";
             // 
             // grpTarjimon
@@ -55,35 +55,29 @@
             this.grpTarjimon.Items.Add(this.btnLatinToCyrillic);
             this.grpTarjimon.Items.Add(this.btnCyrillicToLatin);
             this.grpTarjimon.Items.Add(this.btnADX);
-            this.grpTarjimon.Label = "Tarjimon Office UZ";
+            this.grpTarjimon.Label = "KL Office";
             this.grpTarjimon.Name = "grpTarjimon";
             // 
             // btnLatinToCyrillic
             // 
             this.btnLatinToCyrillic.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
-            this.btnLatinToCyrillic.Label = "Lotin → Kirill";
+            this.btnLatinToCyrillic.Label = "Latin → Кирилл";
             this.btnLatinToCyrillic.Name = "btnLatinToCyrillic";
-            this.btnLatinToCyrillic.ScreenTip = "Lotin matnini kirill yozuviga o‘giradi";
             this.btnLatinToCyrillic.ShowImage = true;
-            this.btnLatinToCyrillic.SuperTip = "Tanlangan katak yoki matnni lotin yozuvidan kirill yozuviga transliteratsiya qila" +
-    "di.";
             this.btnLatinToCyrillic.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.btnLatinToCyrillic_Click);
             // 
             // btnCyrillicToLatin
             // 
             this.btnCyrillicToLatin.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
-            this.btnCyrillicToLatin.Label = "Kirill → Lotin";
+            this.btnCyrillicToLatin.Label = "Кирилл → Latin";
             this.btnCyrillicToLatin.Name = "btnCyrillicToLatin";
-            this.btnCyrillicToLatin.ScreenTip = "Kirill matnini lotin yozuviga o‘giradi";
             this.btnCyrillicToLatin.ShowImage = true;
-            this.btnCyrillicToLatin.SuperTip = "Tanlangan katak yoki matnni kirill yozuvidan lotin yozuviga transliteratsiya qila" +
-    "di.";
             this.btnCyrillicToLatin.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.btnCyrillicToLatin_Click);
             // 
             // btnADX
             // 
             this.btnADX.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
-            this.btnADX.Label = "ADX";
+            this.btnADX.Label = "▼";
             this.btnADX.Name = "btnADX";
             this.btnADX.ShowImage = true;
             this.btnADX.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.btnADX_Click);
@@ -113,7 +107,7 @@
 
     partial class ThisRibbonCollection
     {
-        internal TarjimonRibbon TarjimonRibbon
+        internal TarjimonRibbon Ribbon1
         {
             get { return this.GetRibbon<TarjimonRibbon>(); }
         }
