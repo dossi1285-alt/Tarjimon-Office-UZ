@@ -4,20 +4,13 @@
     {
         private System.ComponentModel.IContainer components = null;
 
-        public TarjimonRibbon()
-            : base(Globals.Factory.GetRibbonFactory())
-        {
-            InitializeComponent();
-        }
+        public TarjimonRibbon() : base(Globals.Factory.GetRibbonFactory()) { InitializeComponent(); }
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing && (components != null))
-                components.Dispose();
+            if (disposing && (components != null)) components.Dispose();
             base.Dispose(disposing);
         }
-
-        #region Код, автоматически созданный конструктором компонентов
 
         private void InitializeComponent()
         {
@@ -30,47 +23,44 @@
             this.grpTarjimon.SuspendLayout();
             this.SuspendLayout();
 
-            // tab1
             this.tab1.ControlId.ControlIdType = Microsoft.Office.Tools.Ribbon.RibbonControlIdType.Office;
             this.tab1.Groups.Add(this.grpTarjimon);
             this.tab1.Label = "KL Officce uz";
             this.tab1.Name = "tab1";
 
-            // grpTarjimon
             this.grpTarjimon.Items.Add(this.btnLatinToCyrillic);
             this.grpTarjimon.Items.Add(this.btnCyrillicToLatin);
             this.grpTarjimon.Items.Add(this.btnADX);
             this.grpTarjimon.Label = "KL Office";
             this.grpTarjimon.Name = "grpTarjimon";
 
-            // btnLatinToCyrillic
             this.btnLatinToCyrillic.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
-            this.btnLatinToCyrillic.Label = "";
+            this.btnLatinToCyrillic.Label = "Lotin → Kirill";
             this.btnLatinToCyrillic.Name = "btnLatinToCyrillic";
             this.btnLatinToCyrillic.ScreenTip = "Lotin matnini kirill yozuviga o‘giradi";
-            this.btnLatinToCyrillic.ShowImage = true;
-            this.btnLatinToCyrillic.SuperTip = "Lotin → Кирилл";
+            this.btnLatinToCyrillic.ShowImage = false;
+            this.btnLatinToCyrillic.ShowLabel = true;
+            this.btnLatinToCyrillic.SuperTip = "Lotin → Kirill";
             this.btnLatinToCyrillic.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.btnLatinToCyrillic_Click);
 
-            // btnCyrillicToLatin
             this.btnCyrillicToLatin.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
-            this.btnCyrillicToLatin.Label = "";
+            this.btnCyrillicToLatin.Label = "Kirill → Lotin";
             this.btnCyrillicToLatin.Name = "btnCyrillicToLatin";
             this.btnCyrillicToLatin.ScreenTip = "Kirill matnini lotin yozuviga o‘giradi";
-            this.btnCyrillicToLatin.ShowImage = true;
-            this.btnCyrillicToLatin.SuperTip = "Кирилл → Latin";
+            this.btnCyrillicToLatin.ShowImage = false;
+            this.btnCyrillicToLatin.ShowLabel = true;
+            this.btnCyrillicToLatin.SuperTip = "Kirill → Lotin";
             this.btnCyrillicToLatin.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.btnCyrillicToLatin_Click);
 
-            // btnADX
             this.btnADX.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
             this.btnADX.Label = "";
             this.btnADX.Name = "btnADX";
             this.btnADX.ScreenTip = "Sozlamalar";
             this.btnADX.ShowImage = true;
+            this.btnADX.ShowLabel = false;
             this.btnADX.SuperTip = "Sozlamalar menyusi";
             this.btnADX.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.btnADX_Click);
 
-            // TarjimonRibbon
             this.Name = "TarjimonRibbon";
             this.RibbonType = "Microsoft.Excel.Workbook";
             this.Tabs.Add(this.tab1);
@@ -82,8 +72,6 @@
             this.ResumeLayout(false);
         }
 
-        #endregion
-
         internal Microsoft.Office.Tools.Ribbon.RibbonTab tab1;
         internal Microsoft.Office.Tools.Ribbon.RibbonGroup grpTarjimon;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton btnLatinToCyrillic;
@@ -93,9 +81,6 @@
 
     partial class ThisRibbonCollection
     {
-        internal TarjimonRibbon Ribbon1
-        {
-            get { return this.GetRibbon<TarjimonRibbon>(); }
-        }
+        internal TarjimonRibbon Ribbon1 { get { return this.GetRibbon<TarjimonRibbon>(); } }
     }
 }
