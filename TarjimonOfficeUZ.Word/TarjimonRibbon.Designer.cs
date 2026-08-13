@@ -2,9 +2,6 @@
 {
     partial class TarjimonRibbon : Microsoft.Office.Tools.Ribbon.RibbonBase
     {
-        /// <summary>
-        /// Обязательная переменная конструктора.
-        /// </summary>
         private System.ComponentModel.IContainer components = null;
 
         public TarjimonRibbon()
@@ -13,25 +10,15 @@
             InitializeComponent();
         }
 
-        /// <summary> 
-        /// Освободить все используемые ресурсы.
-        /// </summary>
-        /// <param name="disposing">истинно, если управляемый ресурс должен быть удален; иначе ложно.</param>
         protected override void Dispose(bool disposing)
         {
             if (disposing && (components != null))
-            {
                 components.Dispose();
-            }
             base.Dispose(disposing);
         }
 
         #region Код, автоматически созданный конструктором компонентов
 
-        /// <summary>
-        /// Требуемый метод для поддержки конструктора — не изменяйте 
-        /// содержимое этого метода с помощью редактора кода.
-        /// </summary>
         private void InitializeComponent()
         {
             this.tab1 = this.Factory.CreateRibbonTab();
@@ -42,48 +29,48 @@
             this.tab1.SuspendLayout();
             this.grpTarjimon.SuspendLayout();
             this.SuspendLayout();
-            // 
+
             // tab1
-            // 
             this.tab1.ControlId.ControlIdType = Microsoft.Office.Tools.Ribbon.RibbonControlIdType.Office;
             this.tab1.Groups.Add(this.grpTarjimon);
             this.tab1.Label = "KL Officce uz";
             this.tab1.Name = "tab1";
-            // 
+
             // grpTarjimon
-            // 
             this.grpTarjimon.Items.Add(this.btnLatinToCyrillic);
             this.grpTarjimon.Items.Add(this.btnCyrillicToLatin);
             this.grpTarjimon.Items.Add(this.btnMenu);
             this.grpTarjimon.Label = "KL Office";
             this.grpTarjimon.Name = "grpTarjimon";
-            // 
+
             // btnLatinToCyrillic
-            // 
             this.btnLatinToCyrillic.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
-            this.btnLatinToCyrillic.Label = "Latin → Кирилл";
+            this.btnLatinToCyrillic.Label = "";
             this.btnLatinToCyrillic.Name = "btnLatinToCyrillic";
+            this.btnLatinToCyrillic.ScreenTip = "Lotin matnini kirill yozuviga o‘giradi";
             this.btnLatinToCyrillic.ShowImage = true;
+            this.btnLatinToCyrillic.SuperTip = "Lotin → Кирилл";
             this.btnLatinToCyrillic.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.btnLatinToCyrillic_Click);
-            // 
+
             // btnCyrillicToLatin
-            // 
             this.btnCyrillicToLatin.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
-            this.btnCyrillicToLatin.Label = "Кирилл → Latin";
+            this.btnCyrillicToLatin.Label = "";
             this.btnCyrillicToLatin.Name = "btnCyrillicToLatin";
+            this.btnCyrillicToLatin.ScreenTip = "Kirill matnini lotin yozuviga o‘giradi";
             this.btnCyrillicToLatin.ShowImage = true;
+            this.btnCyrillicToLatin.SuperTip = "Кирилл → Latin";
             this.btnCyrillicToLatin.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.btnCyrillicToLatin_Click);
-            // 
+
             // btnMenu
-            // 
             this.btnMenu.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
-            this.btnMenu.Label = "▼";
+            this.btnMenu.Label = "";
             this.btnMenu.Name = "btnMenu";
+            this.btnMenu.ScreenTip = "Sozlamalar";
             this.btnMenu.ShowImage = true;
+            this.btnMenu.SuperTip = "Sozlamalar menyusi";
             this.btnMenu.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.btnMenu_Click);
-            // 
+
             // TarjimonRibbon
-            // 
             this.Name = "TarjimonRibbon";
             this.RibbonType = "Microsoft.Word.Document";
             this.Tabs.Add(this.tab1);
@@ -93,7 +80,6 @@
             this.grpTarjimon.ResumeLayout(false);
             this.grpTarjimon.PerformLayout();
             this.ResumeLayout(false);
-
         }
 
         #endregion
