@@ -15,8 +15,8 @@ namespace TarjimonOfficeUZ.Tests
         [TestMethod]
         public void LatinToCyrillic_WordWithW_PreservesPunctuationAndDigits()
         {
-            Assert.AreEqual("Windows2, Web! World-Office", 
-                Transliterator.LatinToCyrillic("Windows2, Web! World-Office"));
+            Assert.AreEqual("Windows2, Web! World-Боок", 
+                Transliterator.LatinToCyrillic("Windows2, Web! World-Book"));
         }
 
         [TestMethod]
