@@ -3,6 +3,8 @@ using Microsoft.Office.Tools.Ribbon;
 using System;
 using System.Windows.Forms;
 using TarjimonOfficeUZ.Core.Translation;
+using TarjimonOfficeUZ.Shared;
+using TarjimonOfficeUZ.Shared.Forms;
 
 namespace TarjimonOfficeUZ.Excel
 {
@@ -10,7 +12,9 @@ namespace TarjimonOfficeUZ.Excel
     {
         private void TarjimonRibbon_Load(object sender, RibbonUIEventArgs e)
         {
-
+            btnLatinToCyrillic.Image = ResourceLoader.A_A;
+            btnCyrillicToLatin.Image = ResourceLoader.A_A;
+            btnADX.Image = ResourceLoader.Kalit;
         }
 
         private Worksheet GetActiveWorksheet()
@@ -42,10 +46,7 @@ namespace TarjimonOfficeUZ.Excel
                 Range usedRange = worksheet.UsedRange;
 
                 if (usedRange == null || usedRange.Cells.CountLarge == 1)
-                {
-                    // Keep the active cell behavior for a truly empty worksheet.
                     return selectedRange;
-                }
 
                 return usedRange;
             }
@@ -89,23 +90,15 @@ namespace TarjimonOfficeUZ.Excel
 
                     string text = Convert.ToString(value);
 
-                    if (text == null)
+                    if (text == null || string.IsNullOrWhiteSpace(text))
                         continue;
 
-                    if (string.IsNullOrWhiteSpace(text))
-                        continue;
-
-                    string result;
-
-                    if (latinToCyrillic)
-                        result = Transliterator.LatinToCyrillic(text);
-                    else
-                        result = Transliterator.CyrillicToLatin(text);
+                    string result = latinToCyrillic
+                        ? Transliterator.LatinToCyrillic(text)
+                        : Transliterator.CyrillicToLatin(text);
 
                     if (!string.Equals(result, text, StringComparison.Ordinal))
-                    {
                         cell.Value2 = result;
-                    }
                 }
                 catch
                 {
@@ -126,14 +119,10 @@ namespace TarjimonOfficeUZ.Excel
 
         private void btnADX_Click(object sender, RibbonControlEventArgs e)
         {
-            MessageBox.Show(
-                "ADX Office\n\n" +
-                "Version: 1.0\n" +
-                "© 2026 ADX\n\n" +
-                "Tarjimon Office UZ",
-                "ADX Office",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Information);
+            using (SettingsForm form = new SettingsForm())
+            {
+                form.ShowDialog();
+            }
         }
     }
 }
