@@ -300,7 +300,7 @@ namespace TarjimonOfficeUZ.Core.Translation
                 {
                     if (current == 'E')
                     {
-                        rule = new AlphabetRule("E'", "ЭЪ");
+                        rule = new AlphabetRule("E'", "Эъ");
                     }
                     else
                     {
