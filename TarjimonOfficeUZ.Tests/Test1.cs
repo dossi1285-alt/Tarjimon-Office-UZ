@@ -15,7 +15,7 @@ namespace TarjimonOfficeUZ.Tests
         [TestMethod]
         public void LatinToCyrillic_WordWithC_RemainsUnchanged_V1()
         {
-            Assert.AreEqual("Cisco Cisco Excel Office Computer", 
+            Assert.AreEqual("Cisco cisco Excel Office Computer", 
                 Transliterator.LatinToCyrillic("Cisco cisco Excel Office Computer"));
         }
 
