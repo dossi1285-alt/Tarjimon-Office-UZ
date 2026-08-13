@@ -45,20 +45,22 @@
 
             // btnLatinToCyrillic
             this.btnLatinToCyrillic.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
-            this.btnLatinToCyrillic.Label = "";
+            this.btnLatinToCyrillic.Label = "Lotin → Kirill";
             this.btnLatinToCyrillic.Name = "btnLatinToCyrillic";
             this.btnLatinToCyrillic.ScreenTip = "Lotin matnini kirill yozuviga o‘giradi";
-            this.btnLatinToCyrillic.ShowImage = true;
-            this.btnLatinToCyrillic.SuperTip = "Lotin → Кирилл";
+            this.btnLatinToCyrillic.ShowImage = false;
+            this.btnLatinToCyrillic.ShowLabel = true;
+            this.btnLatinToCyrillic.SuperTip = "Lotin → Kirill";
             this.btnLatinToCyrillic.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.btnLatinToCyrillic_Click);
 
             // btnCyrillicToLatin
             this.btnCyrillicToLatin.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
-            this.btnCyrillicToLatin.Label = "";
+            this.btnCyrillicToLatin.Label = "Kirill → Lotin";
             this.btnCyrillicToLatin.Name = "btnCyrillicToLatin";
             this.btnCyrillicToLatin.ScreenTip = "Kirill matnini lotin yozuviga o‘giradi";
-            this.btnCyrillicToLatin.ShowImage = true;
-            this.btnCyrillicToLatin.SuperTip = "Кирилл → Latin";
+            this.btnCyrillicToLatin.ShowImage = false;
+            this.btnCyrillicToLatin.ShowLabel = true;
+            this.btnCyrillicToLatin.SuperTip = "Kirill → Lotin";
             this.btnCyrillicToLatin.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.btnCyrillicToLatin_Click);
 
             // btnMenu
@@ -67,6 +69,7 @@
             this.btnMenu.Name = "btnMenu";
             this.btnMenu.ScreenTip = "Sozlamalar";
             this.btnMenu.ShowImage = true;
+            this.btnMenu.ShowLabel = false;
             this.btnMenu.SuperTip = "Sozlamalar menyusi";
             this.btnMenu.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.btnMenu_Click);
 
