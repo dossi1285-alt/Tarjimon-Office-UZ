@@ -13,10 +13,31 @@ namespace TarjimonOfficeUZ.Tests
         }
 
         [TestMethod]
+        public void LatinToCyrillic_WordWithC_RemainsUnchanged_V1()
+        {
+            Assert.AreEqual("Cisco Cisco Excel Office Computer", 
+                Transliterator.LatinToCyrillic("Cisco cisco Excel Office Computer"));
+        }
+
+        [TestMethod]
+        public void LatinToCyrillic_WAndC_InternationalWordsRemainUnchangedWithPunctuation()
+        {
+            Assert.AreEqual("Windows2, Web! Cisco, Office-2026 Computer!", 
+                Transliterator.LatinToCyrillic("Windows2, Web! Cisco, Office-2026 Computer!"));
+        }
+
+        [TestMethod]
         public void LatinToCyrillic_WordWithW_PreservesPunctuationAndDigits()
         {
             Assert.AreEqual("Windows2, Web! World-Боок", 
                 Transliterator.LatinToCyrillic("Windows2, Web! World-Book"));
+        }
+
+        [TestMethod]
+        public void LatinToCyrillic_ChDigraph_IsStillTransliterated()
+        {
+            Assert.AreEqual("чой Чирчиқ Чин", 
+                Transliterator.LatinToCyrillic("choy Chirchiq Chin"));
         }
 
         [TestMethod]
