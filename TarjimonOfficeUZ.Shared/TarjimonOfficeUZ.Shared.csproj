@@ -44,61 +44,27 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Constants.cs" />
-    <Compile Include="Controls\AboutControl.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="Controls\AboutControl.Designer.cs">
-      <DependentUpon>AboutControl.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Controls\GeneralControl.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="Controls\GeneralControl.Designer.cs">
-      <DependentUpon>GeneralControl.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Controls\LanguageControl.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="Controls\LanguageControl.Designer.cs">
-      <DependentUpon>LanguageControl.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Controls\UpdateControl.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="Controls\UpdateControl.Designer.cs">
-      <DependentUpon>UpdateControl.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Forms\SettingsForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\SettingsForm.Designer.cs">
-      <DependentUpon>SettingsForm.cs</DependentUpon>
-    </Compile>
+    <Compile Include="Controls\AboutControl.cs"><SubType>UserControl</SubType></Compile>
+    <Compile Include="Controls\AboutControl.Designer.cs"><DependentUpon>AboutControl.cs</DependentUpon></Compile>
+    <Compile Include="Controls\GeneralControl.cs"><SubType>UserControl</SubType></Compile>
+    <Compile Include="Controls\GeneralControl.Designer.cs"><DependentUpon>GeneralControl.cs</DependentUpon></Compile>
+    <Compile Include="Controls\LanguageControl.cs"><SubType>UserControl</SubType></Compile>
+    <Compile Include="Controls\LanguageControl.Designer.cs"><DependentUpon>LanguageControl.cs</DependentUpon></Compile>
+    <Compile Include="Controls\UpdateControl.cs"><SubType>UserControl</SubType></Compile>
+    <Compile Include="Controls\UpdateControl.Designer.cs"><DependentUpon>UpdateControl.cs</DependentUpon></Compile>
+    <Compile Include="Forms\SettingsForm.cs"><SubType>Form</SubType></Compile>
+    <Compile Include="Forms\SettingsForm.Designer.cs"><DependentUpon>SettingsForm.cs</DependentUpon></Compile>
     <Compile Include="Managers\SettingsManager.cs" />
     <Compile Include="Managers\SettingsModel.cs" />
     <Compile Include="ResourceLoader.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Controls\AboutControl.resx">
-      <DependentUpon>AboutControl.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Controls\GeneralControl.resx">
-      <DependentUpon>GeneralControl.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Controls\LanguageControl.resx">
-      <DependentUpon>LanguageControl.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Controls\UpdateControl.resx">
-      <DependentUpon>UpdateControl.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Forms\SettingsForm.resx">
-      <DependentUpon>SettingsForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Resources\Icons\A_A.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\Icons\Kalit.png" />
+    <EmbeddedResource Include="Controls\AboutControl.resx"><DependentUpon>AboutControl.cs</DependentUpon></EmbeddedResource>
+    <EmbeddedResource Include="Controls\GeneralControl.resx"><DependentUpon>GeneralControl.cs</DependentUpon></EmbeddedResource>
+    <EmbeddedResource Include="Controls\LanguageControl.resx"><DependentUpon>LanguageControl.cs</DependentUpon></EmbeddedResource>
+    <EmbeddedResource Include="Controls\UpdateControl.resx"><DependentUpon>UpdateControl.cs</DependentUpon></EmbeddedResource>
+    <EmbeddedResource Include="Forms\SettingsForm.resx"><DependentUpon>SettingsForm.cs</DependentUpon></EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Interfaces\" />
