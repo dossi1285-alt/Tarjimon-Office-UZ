@@ -35,20 +35,20 @@
             this.grpTarjimon.Name = "grpTarjimon";
 
             this.btnLatinToCyrillic.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
-            this.btnLatinToCyrillic.Label = "Lotin → Kirill";
+            this.btnLatinToCyrillic.Label = "";
             this.btnLatinToCyrillic.Name = "btnLatinToCyrillic";
             this.btnLatinToCyrillic.ScreenTip = "Lotin matnini kirill yozuviga o‘giradi";
-            this.btnLatinToCyrillic.ShowImage = false;
-            this.btnLatinToCyrillic.ShowLabel = true;
+            this.btnLatinToCyrillic.ShowImage = true;
+            this.btnLatinToCyrillic.ShowLabel = false;
             this.btnLatinToCyrillic.SuperTip = "Lotin → Kirill";
             this.btnLatinToCyrillic.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.btnLatinToCyrillic_Click);
 
             this.btnCyrillicToLatin.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
-            this.btnCyrillicToLatin.Label = "Kirill → Lotin";
+            this.btnCyrillicToLatin.Label = "";
             this.btnCyrillicToLatin.Name = "btnCyrillicToLatin";
             this.btnCyrillicToLatin.ScreenTip = "Kirill matnini lotin yozuviga o‘giradi";
-            this.btnCyrillicToLatin.ShowImage = false;
-            this.btnCyrillicToLatin.ShowLabel = true;
+            this.btnCyrillicToLatin.ShowImage = true;
+            this.btnCyrillicToLatin.ShowLabel = false;
             this.btnCyrillicToLatin.SuperTip = "Kirill → Lotin";
             this.btnCyrillicToLatin.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.btnCyrillicToLatin_Click);
 
