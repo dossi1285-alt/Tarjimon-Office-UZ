@@ -1,11 +1,5 @@
 ﻿using Microsoft.Office.Tools.Ribbon;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Resources;
-using System.Text;
 using TarjimonOfficeUZ.Shared;
-using TarjimonOfficeUZ.Word;
 using TarjimonOfficeUZ.Shared.Forms;
 
 namespace TarjimonOfficeUZ.Word
@@ -14,9 +8,9 @@ namespace TarjimonOfficeUZ.Word
     {
         private void Ribbon1_Load(object sender, RibbonUIEventArgs e)
         {
-            btnLatinToCyrillic.Image = ResourceLoader.A_A;
-            btnCyrillicToLatin.Image = ResourceLoader.A_A;
-            btnMenu.Image = ResourceLoader.Kalit;
+            btnLatinToCyrillic.Image = ResourceLoader.LatinToCyrillic;
+            btnCyrillicToLatin.Image = ResourceLoader.CyrillicToLatin;
+            btnMenu.Image = ResourceLoader.Settings;
         }
 
         private void btnLatinToCyrillic_Click(object sender, RibbonControlEventArgs e)
