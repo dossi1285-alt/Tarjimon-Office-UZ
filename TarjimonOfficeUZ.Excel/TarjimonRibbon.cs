@@ -12,9 +12,9 @@ namespace TarjimonOfficeUZ.Excel
     {
         private void TarjimonRibbon_Load(object sender, RibbonUIEventArgs e)
         {
-            btnLatinToCyrillic.Image = ResourceLoader.A_A;
-            btnCyrillicToLatin.Image = ResourceLoader.A_A;
-            btnADX.Image = ResourceLoader.Kalit;
+            btnLatinToCyrillic.Image = ResourceLoader.LatinToCyrillic;
+            btnCyrillicToLatin.Image = ResourceLoader.CyrillicToLatin;
+            btnADX.Image = ResourceLoader.Settings;
         }
 
         private Worksheet GetActiveWorksheet()
