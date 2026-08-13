@@ -30,40 +30,35 @@
             this.grpTarjimon.SuspendLayout();
             this.SuspendLayout();
 
-            // tab1
             this.tab1.ControlId.ControlIdType = Microsoft.Office.Tools.Ribbon.RibbonControlIdType.Office;
             this.tab1.Groups.Add(this.grpTarjimon);
             this.tab1.Label = "KL Officce uz";
             this.tab1.Name = "tab1";
 
-            // grpTarjimon
             this.grpTarjimon.Items.Add(this.btnLatinToCyrillic);
             this.grpTarjimon.Items.Add(this.btnCyrillicToLatin);
             this.grpTarjimon.Items.Add(this.btnMenu);
             this.grpTarjimon.Label = "KL Office";
             this.grpTarjimon.Name = "grpTarjimon";
 
-            // btnLatinToCyrillic
             this.btnLatinToCyrillic.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
-            this.btnLatinToCyrillic.Label = "Lotin → Kirill";
+            this.btnLatinToCyrillic.Label = "";
             this.btnLatinToCyrillic.Name = "btnLatinToCyrillic";
             this.btnLatinToCyrillic.ScreenTip = "Lotin matnini kirill yozuviga o‘giradi";
-            this.btnLatinToCyrillic.ShowImage = false;
-            this.btnLatinToCyrillic.ShowLabel = true;
+            this.btnLatinToCyrillic.ShowImage = true;
+            this.btnLatinToCyrillic.ShowLabel = false;
             this.btnLatinToCyrillic.SuperTip = "Lotin → Kirill";
             this.btnLatinToCyrillic.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.btnLatinToCyrillic_Click);
 
-            // btnCyrillicToLatin
             this.btnCyrillicToLatin.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
-            this.btnCyrillicToLatin.Label = "Kirill → Lotin";
+            this.btnCyrillicToLatin.Label = "";
             this.btnCyrillicToLatin.Name = "btnCyrillicToLatin";
             this.btnCyrillicToLatin.ScreenTip = "Kirill matnini lotin yozuviga o‘giradi";
-            this.btnCyrillicToLatin.ShowImage = false;
-            this.btnCyrillicToLatin.ShowLabel = true;
+            this.btnCyrillicToLatin.ShowImage = true;
+            this.btnCyrillicToLatin.ShowLabel = false;
             this.btnCyrillicToLatin.SuperTip = "Kirill → Lotin";
             this.btnCyrillicToLatin.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.btnCyrillicToLatin_Click);
 
-            // btnMenu
             this.btnMenu.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
             this.btnMenu.Label = "";
             this.btnMenu.Name = "btnMenu";
@@ -73,7 +68,6 @@
             this.btnMenu.SuperTip = "Sozlamalar menyusi";
             this.btnMenu.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.btnMenu_Click);
 
-            // TarjimonRibbon
             this.Name = "TarjimonRibbon";
             this.RibbonType = "Microsoft.Word.Document";
             this.Tabs.Add(this.tab1);
