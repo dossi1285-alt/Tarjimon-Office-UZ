@@ -35,16 +35,19 @@ namespace TarjimonOfficeUZ.Shared.Controls
             {
                 case "ru":
                     lblLanguage.Text = "Язык интерфейса";
+                    lblRestart.Text = "Перезапустите Microsoft Office для применения изменений.";
                     btnSave.Text = "Сохранить";
                     btnCancel.Text = "Отмена";
                     break;
                 case "en":
                     lblLanguage.Text = "Interface language";
+                    lblRestart.Text = "Restart Microsoft Office to apply changes.";
                     btnSave.Text = "Save";
                     btnCancel.Text = "Cancel";
                     break;
                 default:
                     lblLanguage.Text = "Interfeys tili";
+                    lblRestart.Text = "O‘zgarishlarni qo‘llash uchun Microsoft Office'ni qayta ishga tushiring.";
                     btnSave.Text = "Saqlash";
                     btnCancel.Text = "Bekor qilish";
                     break;
