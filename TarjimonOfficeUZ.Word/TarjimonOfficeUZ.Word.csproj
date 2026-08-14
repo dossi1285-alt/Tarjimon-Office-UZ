@@ -57,7 +57,7 @@
     EnableUnmanagedDebugging
       If "true", starting the debugger will attach both managed and unmanaged debuggers.
     Optimize
-      If "true", optimize the build output. If "false", do not optimize.
+      If "true", optimize the build output. If "false", do not create symbols.
     OutputPath
       Output path of project relative to the project file.
     WarningLevel
@@ -80,11 +80,9 @@
     DefineConstants
       Constants defined for the preprocessor.
     EnableUnmanagedDebugging
-      If "true", create symbols (.pdb). If "false", do not create symbols.
-    EnableUnmanagedDebugging
       If "true", starting the debugger will attach both managed and unmanaged debuggers.
     Optimize
-      If "true", optimize the build output. If "false", do not optimize.
+      If "true", optimize the build output. If "false", do not create symbols.
     OutputPath
       Output path of project relative to the project file.
     WarningLevel
@@ -117,7 +115,7 @@
     <Reference Include="Microsoft.Office.Tools.v4.0.Framework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <Private>False</Private>
     </Reference>
-    <Reference Include="Microsoft.VisualStudio.Tools.Applications.Runtime, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="Microsoft.VisualStudio.Tools.Applications.Runtime, Version=10.0.0.0, Culture=neutral, PublicKeyToken=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <Private>False</Private>
     </Reference>
     <Reference Include="Microsoft.Office.Tools, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
@@ -257,12 +255,6 @@
   </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>false</SignAssembly>
-  </PropertyGroup>
-  <PropertyGroup>
-    <AssemblyOriginatorKeyFile>TarjimonOfficeUZ.Word_ReleaseKey.pfx</AssemblyOriginatorKeyFile>
-  </PropertyGroup>
-  <PropertyGroup>
-    <ManifestKeyFile>TarjimonOfficeUZ.Word_ReleaseKey.pfx</ManifestKeyFile>
   </PropertyGroup>
   <PropertyGroup>
     <ManifestCertificateThumbprint>C79456EA36C82302C9A1CCBC8E34971773367BEB</ManifestCertificateThumbprint>
