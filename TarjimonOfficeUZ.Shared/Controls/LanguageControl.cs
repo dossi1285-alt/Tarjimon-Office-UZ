@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.Windows.Forms;
 using TarjimonOfficeUZ.Shared.Managers;
+using TarjimonOfficeUZ.Shared.Forms;
 
 namespace TarjimonOfficeUZ.Shared.Controls
 {
@@ -9,31 +10,43 @@ namespace TarjimonOfficeUZ.Shared.Controls
         public LanguageControl()
         {
             InitializeComponent();
-
             Dock = DockStyle.Fill;
-
             cmbLanguage.Items.Clear();
-
-            cmbLanguage.Items.Add("O'zbek");
+            cmbLanguage.Items.Add("O‘zbek");
             cmbLanguage.Items.Add("Русский");
             cmbLanguage.Items.Add("English");
+            SelectCurrentLanguage();
+            ApplyLanguage();
+        }
 
+        private void SelectCurrentLanguage()
+        {
             switch (SettingsManager.Current.Language)
             {
-                case "uz":
-                    cmbLanguage.SelectedIndex = 0;
-                    break;
+                case "ru": cmbLanguage.SelectedIndex = 1; break;
+                case "en": cmbLanguage.SelectedIndex = 2; break;
+                default: cmbLanguage.SelectedIndex = 0; break;
+            }
+        }
 
+        public void ApplyLanguage()
+        {
+            switch (SettingsManager.Current.Language)
+            {
                 case "ru":
-                    cmbLanguage.SelectedIndex = 1;
+                    lblLanguage.Text = "Язык интерфейса";
+                    btnSave.Text = "Сохранить";
+                    btnCancel.Text = "Отмена";
                     break;
-
                 case "en":
-                    cmbLanguage.SelectedIndex = 2;
+                    lblLanguage.Text = "Interface language";
+                    btnSave.Text = "Save";
+                    btnCancel.Text = "Cancel";
                     break;
-
                 default:
-                    cmbLanguage.SelectedIndex = 0;
+                    lblLanguage.Text = "Interfeys tili";
+                    btnSave.Text = "Saqlash";
+                    btnCancel.Text = "Bekor qilish";
                     break;
             }
         }
@@ -42,23 +55,21 @@ namespace TarjimonOfficeUZ.Shared.Controls
         {
             switch (cmbLanguage.SelectedIndex)
             {
-                case 0:
-                    SettingsManager.Current.Language = "uz";
-                    break;
-
-                case 1:
-                    SettingsManager.Current.Language = "ru";
-                    break;
-
-                case 2:
-                    SettingsManager.Current.Language = "en";
-                    break;
+                case 1: SettingsManager.Current.Language = "ru"; break;
+                case 2: SettingsManager.Current.Language = "en"; break;
+                default: SettingsManager.Current.Language = "uz"; break;
             }
 
             SettingsManager.Save();
+            ApplyLanguage();
 
+            SettingsForm form = FindForm() as SettingsForm;
+            if (form != null)
+                form.ApplyLanguage();
+
+            string language = SettingsManager.Current.Language;
             MessageBox.Show(
-                "Language saved successfully.",
+                language == "ru" ? "Язык сохранён." : language == "en" ? "Language saved." : "Til saqlandi.",
                 "Tarjimon Office UZ",
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Information);
@@ -66,22 +77,7 @@ namespace TarjimonOfficeUZ.Shared.Controls
 
         private void btnCancel_Click(object sender, EventArgs e)
         {
-            switch (SettingsManager.Current.Language)
-            {
-                case "uz":
-                    cmbLanguage.SelectedIndex = 0;
-                    break;
-
-                case "ru":
-                    cmbLanguage.SelectedIndex = 1;
-                    break;
-
-                case "en":
-                    cmbLanguage.SelectedIndex = 2;
-                    break;
-            }
+            SelectCurrentLanguage();
         }
-
-        
     }
 }
