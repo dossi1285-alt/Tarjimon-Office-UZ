@@ -4,20 +4,13 @@
     {
         private System.ComponentModel.IContainer components = null;
 
-        public TarjimonRibbon()
-            : base(Globals.Factory.GetRibbonFactory())
-        {
-            InitializeComponent();
-        }
+        public TarjimonRibbon() : base(Globals.Factory.GetRibbonFactory()) { InitializeComponent(); }
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing && (components != null))
-                components.Dispose();
+            if (disposing && (components != null)) components.Dispose();
             base.Dispose(disposing);
         }
-
-        #region Код, автоматически созданный конструктором компонентов
 
         private void InitializeComponent()
         {
@@ -41,7 +34,7 @@
             this.tab1.Name = "tab1";
 
             this.grpTarjimon.Items.Add(this.boxTarjimon);
-            this.grpTarjimon.Label = "Tarjimon";
+            this.grpTarjimon.Label = "";
             this.grpTarjimon.Name = "grpTarjimon";
 
             this.boxTarjimon.BoxStyle = Microsoft.Office.Tools.Ribbon.RibbonBoxStyle.Vertical;
@@ -95,8 +88,6 @@
             this.ResumeLayout(false);
         }
 
-        #endregion
-
         internal Microsoft.Office.Tools.Ribbon.RibbonTab tab1;
         internal Microsoft.Office.Tools.Ribbon.RibbonGroup grpTarjimon;
         internal Microsoft.Office.Tools.Ribbon.RibbonBox boxTarjimon;
@@ -108,9 +99,6 @@
 
     partial class ThisRibbonCollection
     {
-        internal TarjimonRibbon Ribbon1
-        {
-            get { return this.GetRibbon<TarjimonRibbon>(); }
-        }
+        internal TarjimonRibbon Ribbon1 { get { return this.GetRibbon<TarjimonRibbon>(); } }
     }
 }
