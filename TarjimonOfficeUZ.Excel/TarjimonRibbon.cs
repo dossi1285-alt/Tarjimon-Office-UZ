@@ -55,6 +55,20 @@ namespace TarjimonOfficeUZ.Excel
             return selectedRange;
         }
 
+        private string NormalizeExcelCyrillicInput(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+                return text;
+
+            // Excel-specific safeguard for the Uzbek spelling Оъ/оъ.
+            // This must become O'/o' when Cyrillic is converted to Latin.
+            return text
+                .Replace("Оъ", "О'")
+                .Replace("оъ", "о'")
+                .Replace("ОЪ", "О'")
+                .Replace("оЪ", "о'");
+        }
+
         private void ConvertSelectedCells(bool latinToCyrillic)
         {
             Range translationRange = GetTranslationRange();
@@ -93,11 +107,14 @@ namespace TarjimonOfficeUZ.Excel
                     if (text == null || string.IsNullOrWhiteSpace(text))
                         continue;
 
+                    if (!latinToCyrillic)
+                        text = NormalizeExcelCyrillicInput(text);
+
                     string result = latinToCyrillic
                         ? Transliterator.LatinToCyrillic(text)
                         : Transliterator.CyrillicToLatin(text);
 
-                    if (!string.Equals(result, text, StringComparison.Ordinal))
+                    if (!string.Equals(result, Convert.ToString(value), StringComparison.Ordinal))
                         cell.Value2 = result;
                 }
                 catch
