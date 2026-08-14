@@ -82,16 +82,9 @@
             this.dropDownTranslationScope.SelectionChanged += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.dropDownTranslationScope_SelectionChanged);
 
             this.scopeSelectedCells.Label = "Belgilang. kataklar";
-            this.scopeSelectedCells.Name = "scopeSelectedCells";
-
             this.scopeCurrentCell.Label = "Joriy katak";
-            this.scopeCurrentCell.Name = "scopeCurrentCell";
-
             this.scopeUsedRange.Label = "Ishlatilgan diapazon";
-            this.scopeUsedRange.Name = "scopeUsedRange";
-
             this.scopeWholeWorksheet.Label = "Butun varaq";
-            this.scopeWholeWorksheet.Name = "scopeWholeWorksheet";
 
             this.grpBrand.Items.Add(this.btnADX);
             this.grpBrand.Label = "KL Office";
