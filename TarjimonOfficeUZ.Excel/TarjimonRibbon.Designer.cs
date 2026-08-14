@@ -19,11 +19,6 @@
             this.boxTarjimon = this.Factory.CreateRibbonBox();
             this.btnLatinToCyrillic = this.Factory.CreateRibbonButton();
             this.btnCyrillicToLatin = this.Factory.CreateRibbonButton();
-            this.dropDownTranslationScope = this.Factory.CreateRibbonDropDown();
-            this.scopeSelectedCells = this.Factory.CreateRibbonDropDownItem();
-            this.scopeCurrentCell = this.Factory.CreateRibbonDropDownItem();
-            this.scopeUsedRange = this.Factory.CreateRibbonDropDownItem();
-            this.scopeWholeWorksheet = this.Factory.CreateRibbonDropDownItem();
             this.grpBrand = this.Factory.CreateRibbonGroup();
             this.btnADX = this.Factory.CreateRibbonButton();
             this.tab1.SuspendLayout();
@@ -45,7 +40,6 @@
             this.boxTarjimon.BoxStyle = Microsoft.Office.Tools.Ribbon.RibbonBoxStyle.Vertical;
             this.boxTarjimon.Items.Add(this.btnCyrillicToLatin);
             this.boxTarjimon.Items.Add(this.btnLatinToCyrillic);
-            this.boxTarjimon.Items.Add(this.dropDownTranslationScope);
             this.boxTarjimon.Name = "boxTarjimon";
 
             this.btnLatinToCyrillic.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeRegular;
@@ -65,26 +59,6 @@
             this.btnCyrillicToLatin.ShowLabel = true;
             this.btnCyrillicToLatin.SuperTip = "Kirill → Lotin";
             this.btnCyrillicToLatin.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.btnCyrillicToLatin_Click);
-
-            this.dropDownTranslationScope.Label = "Tarjima usuli";
-            this.dropDownTranslationScope.Name = "dropDownTranslationScope";
-            this.dropDownTranslationScope.ScreenTip = "Tarjima qilinadigan diapazonni tanlang";
-            this.dropDownTranslationScope.ShowImage = false;
-            this.dropDownTranslationScope.ShowItemImage = false;
-            this.dropDownTranslationScope.ShowItemLabel = true;
-            this.dropDownTranslationScope.ShowLabel = true;
-            this.dropDownTranslationScope.SizeString = "Ishlatilgan diapazon";
-            this.dropDownTranslationScope.Items.Add(this.scopeSelectedCells);
-            this.dropDownTranslationScope.Items.Add(this.scopeCurrentCell);
-            this.dropDownTranslationScope.Items.Add(this.scopeUsedRange);
-            this.dropDownTranslationScope.Items.Add(this.scopeWholeWorksheet);
-            this.dropDownTranslationScope.SelectedItemIndex = 0;
-            this.dropDownTranslationScope.SelectionChanged += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.dropDownTranslationScope_SelectionChanged);
-
-            this.scopeSelectedCells.Label = "Belgilang. kataklar";
-            this.scopeCurrentCell.Label = "Joriy katak";
-            this.scopeUsedRange.Label = "Ishlatilgan diapazon";
-            this.scopeWholeWorksheet.Label = "Butun varaq";
 
             this.grpBrand.Items.Add(this.btnADX);
             this.grpBrand.Label = "KL Office";
@@ -119,11 +93,6 @@
         internal Microsoft.Office.Tools.Ribbon.RibbonBox boxTarjimon;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton btnLatinToCyrillic;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton btnCyrillicToLatin;
-        internal Microsoft.Office.Tools.Ribbon.RibbonDropDown dropDownTranslationScope;
-        internal Microsoft.Office.Tools.Ribbon.RibbonDropDownItem scopeSelectedCells;
-        internal Microsoft.Office.Tools.Ribbon.RibbonDropDownItem scopeCurrentCell;
-        internal Microsoft.Office.Tools.Ribbon.RibbonDropDownItem scopeUsedRange;
-        internal Microsoft.Office.Tools.Ribbon.RibbonDropDownItem scopeWholeWorksheet;
         internal Microsoft.Office.Tools.Ribbon.RibbonGroup grpBrand;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton btnADX;
     }
