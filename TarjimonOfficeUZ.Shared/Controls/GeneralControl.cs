@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.Windows.Forms;
 using TarjimonOfficeUZ.Shared.Managers;
+using TarjimonOfficeUZ.Shared.Services;
 
 namespace TarjimonOfficeUZ.Shared.Controls
 {
@@ -19,11 +20,16 @@ namespace TarjimonOfficeUZ.Shared.Controls
 
         private void GeneralControl_Load(object sender, EventArgs e)
         {
-
         }
 
         private void btnSave_Click(object sender, EventArgs e)
         {
+            bool wordApplied = OfficeAddInStartupService.SetWordStartup(
+                chkWordStartup.Checked);
+
+            bool excelApplied = OfficeAddInStartupService.SetExcelStartup(
+                chkExcelStartup.Checked);
+
             SettingsManager.Current.StartWithWord =
                 chkWordStartup.Checked;
 
@@ -32,11 +38,22 @@ namespace TarjimonOfficeUZ.Shared.Controls
 
             SettingsManager.Save();
 
+            if (wordApplied && excelApplied)
+            {
+                MessageBox.Show(
+                    "Settings saved successfully. Changes will apply the next time Word or Excel starts.",
+                    "Tarjimon Office UZ",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+
+                return;
+            }
+
             MessageBox.Show(
-                "Settings saved successfully.",
+                "Settings were saved, but one or both Office add-in startup settings could not be applied. Please restart Word/Excel and check the add-in registration.",
                 "Tarjimon Office UZ",
                 MessageBoxButtons.OK,
-                MessageBoxIcon.Information);
+                MessageBoxIcon.Warning);
         }
 
         private void btnCancel_Click(object sender, EventArgs e)
