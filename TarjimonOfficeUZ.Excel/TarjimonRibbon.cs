@@ -1,4 +1,4 @@
-﻿using Microsoft.Office.Interop.Excel;
+﻿using Excel = Microsoft.Office.Interop.Excel;
 using Microsoft.Office.Tools.Ribbon;
 using System;
 using System.IO;
@@ -32,7 +32,7 @@ namespace TarjimonOfficeUZ.Excel
                 if (!File.Exists(addInPath))
                     return;
 
-                foreach (AddIn addIn in Globals.ThisAddIn.Application.AddIns)
+                foreach (Excel.AddIn addIn in Globals.ThisAddIn.Application.AddIns)
                 {
                     try
                     {
@@ -47,7 +47,7 @@ namespace TarjimonOfficeUZ.Excel
                     }
                 }
 
-                AddIn bridge = Globals.ThisAddIn.Application.AddIns.Add(addInPath, false);
+                Excel.AddIn bridge = Globals.ThisAddIn.Application.AddIns.Add(addInPath, false);
                 bridge.Installed = true;
             }
             catch
@@ -56,23 +56,23 @@ namespace TarjimonOfficeUZ.Excel
             }
         }
 
-        private Worksheet GetActiveWorksheet()
+        private Excel.Worksheet GetActiveWorksheet()
         {
-            return Globals.ThisAddIn.Application.ActiveSheet as Worksheet;
+            return Globals.ThisAddIn.Application.ActiveSheet as Excel.Worksheet;
         }
 
-        private Range GetSelectedRange()
+        private Excel.Range GetSelectedRange()
         {
-            return Globals.ThisAddIn.Application.Selection as Range;
+            return Globals.ThisAddIn.Application.Selection as Excel.Range;
         }
 
         // Frozen Excel rules:
         // 1) one active cell -> translate the worksheet's used data area;
         // 2) two or more selected cells -> translate only that selection.
-        private Range GetTranslationRange()
+        private Excel.Range GetTranslationRange()
         {
-            Worksheet worksheet = GetActiveWorksheet();
-            Range selectedRange = GetSelectedRange();
+            Excel.Worksheet worksheet = GetActiveWorksheet();
+            Excel.Range selectedRange = GetSelectedRange();
 
             if (worksheet == null || selectedRange == null)
                 return null;
@@ -97,12 +97,12 @@ namespace TarjimonOfficeUZ.Excel
 
         private void ConvertSelectedCells(bool latinToCyrillic)
         {
-            Range translationRange = GetTranslationRange();
+            Excel.Range translationRange = GetTranslationRange();
 
             if (translationRange == null)
                 return;
 
-            Worksheet worksheet = GetActiveWorksheet();
+            Excel.Worksheet worksheet = GetActiveWorksheet();
 
             if (worksheet != null && worksheet.ProtectContents)
             {
@@ -147,11 +147,11 @@ namespace TarjimonOfficeUZ.Excel
             }
         }
 
-        private int TranslateRangeCells(Range translationRange, bool latinToCyrillic, bool captureUndo)
+        private int TranslateRangeCells(Excel.Range translationRange, bool latinToCyrillic, bool captureUndo)
         {
             int changedCount = 0;
 
-            foreach (Range cell in translationRange.Cells)
+            foreach (Excel.Range cell in translationRange.Cells)
             {
                 try
                 {
