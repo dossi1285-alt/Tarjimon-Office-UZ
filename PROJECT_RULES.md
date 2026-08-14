@@ -82,3 +82,31 @@ The 1.0 release can be called **100% complete / frozen** only after:
 This file is the project's canonical architecture/rules reference. Before making consequential project changes through GitHub or while reasoning about the 1.0 release, use this file as the project baseline and do not contradict it without explicit user approval.
 
 If a later request conflicts with these rules, explicitly point out the conflict before changing the architecture.
+
+## 8. Repository and GitHub workflow
+
+GitHub is the canonical remote repository for this project. The repository is `dossi1285-alt/Tarjimon-Office-UZ`.
+
+The active release work is performed through the `release/1.0-installer-cleanup` branch unless explicitly changed by the user.
+
+GitHub Desktop is installed and is part of the project's normal workflow. Before asking the user to repeat a local operation, first inspect the repository state and recent Git history through GitHub when available.
+
+Required synchronization discipline:
+
+1. Inspect the current repository/branch state before consequential changes.
+2. Fetch/pull remote changes before pushing when GitHub reports that the remote is ahead.
+3. Never use force-push for normal release work.
+4. After a remote change, keep the user's local working tree synchronized before the next build.
+5. Before commit/push, inspect the diff and reject accidental full-file rewrites, temporary files, or unrelated changes.
+
+## 9. Installer technology decision
+
+WiX Toolset 7 was previously selected for the long-term installer architecture. The current `release/1.0-installer-cleanup` branch still contains the legacy Visual Studio Installer Project file `TarjimonOfficeUZ.Setup/TarjimonOfficeUZ.Setup.vdproj` and does not yet contain the WiX `.wxs` installer definition.
+
+This is an identified architecture/migration gap. Do not silently mix installer architectures or declare the installer complete until the chosen final installer architecture is explicitly resolved and satisfies the single-installer Word+Excel acceptance criteria.
+
+## 10. Current 1.0 blocker definition
+
+A successful `TarjimonOfficeUZ.Setup.msi` build is not sufficient by itself. The Setup project must demonstrably package both `TarjimonOfficeUZ.Word` and `TarjimonOfficeUZ.Excel` outputs and the resulting single installer must install both add-ins.
+
+If Setup currently packages only Shared/dependency output, treat that as a blocker rather than a successful 1.0 installer.
