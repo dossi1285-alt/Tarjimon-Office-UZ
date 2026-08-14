@@ -10,11 +10,22 @@ namespace TarjimonOfficeUZ.Excel
 {
     public partial class TarjimonRibbon
     {
+        private enum TranslationScope
+        {
+            SelectedCells = 0,
+            CurrentCell = 1,
+            UsedRange = 2,
+            WholeWorksheet = 3
+        }
+
+        private TranslationScope _translationScope = TranslationScope.SelectedCells;
+
         private void TarjimonRibbon_Load(object sender, RibbonUIEventArgs e)
         {
             btnLatinToCyrillic.Image = ResourceLoader.LatinToCyrillic;
             btnCyrillicToLatin.Image = ResourceLoader.CyrillicToLatin;
             btnADX.Image = ResourceLoader.Settings;
+            dropDownTranslationScope.SelectedItemIndex = (int)_translationScope;
         }
 
         private Worksheet GetActiveWorksheet()
@@ -29,30 +40,30 @@ namespace TarjimonOfficeUZ.Excel
 
         private Range GetTranslationRange()
         {
+            Worksheet worksheet = GetActiveWorksheet();
             Range selectedRange = GetSelectedRange();
 
-            if (selectedRange == null)
+            if (worksheet == null || selectedRange == null)
                 return null;
 
-            // Excel always has an active cell. A single-cell selection is treated
-            // as "no explicit range" and translates the worksheet's used range.
-            if (selectedRange.Cells.CountLarge == 1)
+            switch (_translationScope)
             {
-                Worksheet worksheet = GetActiveWorksheet();
+                case TranslationScope.CurrentCell:
+                    return selectedRange.Cells[1, 1] as Range;
 
-                if (worksheet == null)
-                    return null;
+                case TranslationScope.UsedRange:
+                    return worksheet.UsedRange;
 
-                Range usedRange = worksheet.UsedRange;
+                case TranslationScope.WholeWorksheet:
+                    // Excel has a finite worksheet, but translating every physical
+                    // cell is impractical. The whole-worksheet mode therefore means
+                    // all cells in the worksheet's used area; formulas are still skipped.
+                    return worksheet.UsedRange;
 
-                if (usedRange == null || usedRange.Cells.CountLarge == 1)
+                case TranslationScope.SelectedCells:
+                default:
                     return selectedRange;
-
-                return usedRange;
             }
-
-            // Explicit multi-cell selection: translate only what the user selected.
-            return selectedRange;
         }
 
         private string NormalizeExcelCyrillicInput(string text)
@@ -132,6 +143,14 @@ namespace TarjimonOfficeUZ.Excel
         private void btnLatinToCyrillic_Click(object sender, RibbonControlEventArgs e)
         {
             ConvertSelectedCells(true);
+        }
+
+        private void dropDownTranslationScope_SelectionChanged(object sender, RibbonControlEventArgs e)
+        {
+            int index = dropDownTranslationScope.SelectedItemIndex;
+
+            if (index >= 0 && index <= 3)
+                _translationScope = (TranslationScope)index;
         }
 
         private void btnADX_Click(object sender, RibbonControlEventArgs e)
