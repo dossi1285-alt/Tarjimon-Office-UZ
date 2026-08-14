@@ -41,7 +41,7 @@
             this.boxTarjimon.Name = "boxTarjimon";
 
             this.btnLatinToCyrillic.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeRegular;
-            this.btnLatinToCyrillic.Label = "Lotin → Kirill";
+            this.btnLatinToCyrillic.Label = "\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0Lotin → Kirill\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0";
             this.btnLatinToCyrillic.Name = "btnLatinToCyrillic";
             this.btnLatinToCyrillic.ScreenTip = "Lotin matnini kirill yozuviga o‘giradi";
             this.btnLatinToCyrillic.ShowImage = false;
@@ -50,7 +50,7 @@
             this.btnLatinToCyrillic.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.btnLatinToCyrillic_Click);
 
             this.btnCyrillicToLatin.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeRegular;
-            this.btnCyrillicToLatin.Label = "Kirill → Lotin";
+            this.btnCyrillicToLatin.Label = "\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0Kirill → Lotin\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0";
             this.btnCyrillicToLatin.Name = "btnCyrillicToLatin";
             this.btnCyrillicToLatin.ScreenTip = "Kirill matnini lotin yozuviga o‘giradi";
             this.btnCyrillicToLatin.ShowImage = false;
@@ -59,7 +59,7 @@
             this.btnCyrillicToLatin.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.btnCyrillicToLatin_Click);
 
             this.btnADX.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeRegular;
-            this.btnADX.Label = "Sozlama";
+            this.btnADX.Label = "\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0Sozlama\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0";
             this.btnADX.Name = "btnADX";
             this.btnADX.ScreenTip = "Sozlamalar";
             this.btnADX.ShowImage = false;
