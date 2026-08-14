@@ -27,9 +27,9 @@ namespace TarjimonOfficeUZ.Excel
             return Globals.ThisAddIn.Application.Selection as Range;
         }
 
-        // Excel translation has exactly two modes:
-        // 1) one active cell selected -> translate the worksheet's used data area;
-        // 2) two or more cells selected -> translate only that selection.
+        // Two Excel translation modes:
+        // 1) one active cell -> translate the worksheet's used data area;
+        // 2) two or more cells -> translate only that selection.
         private Range GetTranslationRange()
         {
             Worksheet worksheet = GetActiveWorksheet();
@@ -49,7 +49,6 @@ namespace TarjimonOfficeUZ.Excel
             if (string.IsNullOrEmpty(text))
                 return text;
 
-            // Excel-specific safeguard for the Uzbek spelling Оъ/оъ.
             return text
                 .Replace("Оъ", "О'")
                 .Replace("оъ", "о'")
@@ -74,64 +73,33 @@ namespace TarjimonOfficeUZ.Excel
                     "ADX Office",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning);
-
                 return;
             }
 
             dynamic undoRecord = null;
             bool undoStarted = false;
-            int changedCells = 0;
 
             try
             {
-                // Excel groups all cell changes made between StartCustomRecord and
-                // EndCustomRecord into one Ctrl+Z operation.
-                undoRecord = Globals.ThisAddIn.Application.UndoRecord;
+                // The installed Excel Interop assembly does not expose UndoRecord
+                // on its Application interface, so access the COM member dynamically.
+                dynamic excelApplication = Globals.ThisAddIn.Application;
+                undoRecord = excelApplication.UndoRecord;
+
                 string undoTitle = latinToCyrillic
                     ? "Lotin → Kirill tarjimasi"
                     : "Kirill → Lotin tarjimasi";
+
                 undoRecord.StartCustomRecord(undoTitle);
                 undoStarted = true;
 
-                foreach (Range cell in translationRange.Cells)
-                {
-                    try
-                    {
-                        // Rules: formulas and empty cells are never translated.
-                        if (cell.HasFormula)
-                            continue;
-
-                        object value = cell.Value2;
-
-                        if (value == null)
-                            continue;
-
-                        string text = Convert.ToString(value);
-
-                        if (string.IsNullOrWhiteSpace(text))
-                            continue;
-
-                        string originalText = text;
-
-                        if (!latinToCyrillic)
-                            text = NormalizeExcelCyrillicInput(text);
-
-                        string result = latinToCyrillic
-                            ? Transliterator.LatinToCyrillic(text)
-                            : Transliterator.CyrillicToLatin(text);
-
-                        if (!string.Equals(result, originalText, StringComparison.Ordinal))
-                        {
-                            cell.Value2 = result;
-                            changedCells++;
-                        }
-                    }
-                    catch
-                    {
-                        // One problematic cell must not stop the remaining cells.
-                        continue;
-                    }
-                }
+                TranslateRangeCells(translationRange, latinToCyrillic);
+            }
+            catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException)
+            {
+                // This Excel/Interop combination does not expose UndoRecord.
+                // Translation must still work; Excel's native Undo remains unchanged.
+                TranslateRangeCells(translationRange, latinToCyrillic);
             }
             catch (Exception ex)
             {
@@ -152,8 +120,44 @@ namespace TarjimonOfficeUZ.Excel
                     }
                     catch
                     {
-                        // Do not replace a successful translation with an Undo cleanup error.
                     }
+                }
+            }
+        }
+
+        private void TranslateRangeCells(Range translationRange, bool latinToCyrillic)
+        {
+            foreach (Range cell in translationRange.Cells)
+            {
+                try
+                {
+                    // Fixed Excel rules: formulas and empty cells are never translated.
+                    if (cell.HasFormula)
+                        continue;
+
+                    object value = cell.Value2;
+                    if (value == null)
+                        continue;
+
+                    string text = Convert.ToString(value);
+                    if (string.IsNullOrWhiteSpace(text))
+                        continue;
+
+                    string originalText = text;
+
+                    if (!latinToCyrillic)
+                        text = NormalizeExcelCyrillicInput(text);
+
+                    string result = latinToCyrillic
+                        ? Transliterator.LatinToCyrillic(text)
+                        : Transliterator.CyrillicToLatin(text);
+
+                    if (!string.Equals(result, originalText, StringComparison.Ordinal))
+                        cell.Value2 = result;
+                }
+                catch
+                {
+                    continue;
                 }
             }
         }
