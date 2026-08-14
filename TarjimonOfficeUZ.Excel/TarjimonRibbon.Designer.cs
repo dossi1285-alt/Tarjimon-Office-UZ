@@ -34,7 +34,7 @@
             this.tab1.Name = "tab1";
 
             this.grpTarjimon.Items.Add(this.boxTarjimon);
-            this.grpTarjimon.Label = "Tarjimon";
+            this.grpTarjimon.Label = "";
             this.grpTarjimon.Name = "grpTarjimon";
 
             this.boxTarjimon.BoxStyle = Microsoft.Office.Tools.Ribbon.RibbonBoxStyle.Vertical;
