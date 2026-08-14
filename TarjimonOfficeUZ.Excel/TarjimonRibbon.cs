@@ -27,9 +27,9 @@ namespace TarjimonOfficeUZ.Excel
             return Globals.ThisAddIn.Application.Selection as Range;
         }
 
-        // Two Excel translation modes:
+        // Frozen Excel rules:
         // 1) one active cell -> translate the worksheet's used data area;
-        // 2) two or more cells -> translate only that selection.
+        // 2) two or more selected cells -> translate only that selection.
         private Range GetTranslationRange()
         {
             Worksheet worksheet = GetActiveWorksheet();
@@ -76,57 +76,38 @@ namespace TarjimonOfficeUZ.Excel
                 return;
             }
 
-            dynamic undoRecord = null;
-            bool undoStarted = false;
+            // The translation itself is frozen and remains unchanged.
+            // Before changing cells, capture only the cells that will actually change.
+            int changedCount = TranslateRangeCells(translationRange, latinToCyrillic, true);
 
+            if (changedCount == 0)
+            {
+                ExcelTranslationUndoManager.Clear();
+                return;
+            }
+
+            string undoTitle = latinToCyrillic
+                ? "Lotin → Kirill tarjimasini bekor qilish"
+                : "Kirill → Lotin tarjimasini bekor qilish";
+
+            // Excel's native VBA OnUndo mechanism is the bridge point. The VBA bridge
+            // calls the COM automation method exposed by ThisAddIn.
             try
             {
-                // The installed Excel Interop assembly does not expose UndoRecord
-                // on its Application interface, so access the COM member dynamically.
                 dynamic excelApplication = Globals.ThisAddIn.Application;
-                undoRecord = excelApplication.UndoRecord;
-
-                string undoTitle = latinToCyrillic
-                    ? "Lotin → Kirill tarjimasi"
-                    : "Kirill → Lotin tarjimasi";
-
-                undoRecord.StartCustomRecord(undoTitle);
-                undoStarted = true;
-
-                TranslateRangeCells(translationRange, latinToCyrillic);
+                excelApplication.OnUndo(undoTitle, "TarjimonOfficeUZ.UndoBridge.xlam!UndoLastTranslation");
             }
-            catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException)
+            catch
             {
-                // This Excel/Interop combination does not expose UndoRecord.
-                // Translation must still work; Excel's native Undo remains unchanged.
-                TranslateRangeCells(translationRange, latinToCyrillic);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(
-                    "Excel tarjimasi bajarildi, lekin Undo yozuvini yaratishda muammo yuz berdi.\n\n" +
-                    ex.Message,
-                    "ADX Office",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning);
-            }
-            finally
-            {
-                if (undoStarted && undoRecord != null)
-                {
-                    try
-                    {
-                        undoRecord.EndCustomRecord();
-                    }
-                    catch
-                    {
-                    }
-                }
+                // The bridge may not be installed yet. The snapshot is still kept so
+                // the bridge can use it as soon as it is installed.
             }
         }
 
-        private void TranslateRangeCells(Range translationRange, bool latinToCyrillic)
+        private int TranslateRangeCells(Range translationRange, bool latinToCyrillic, bool captureUndo)
         {
+            int changedCount = 0;
+
             foreach (Range cell in translationRange.Cells)
             {
                 try
@@ -153,13 +134,25 @@ namespace TarjimonOfficeUZ.Excel
                         : Transliterator.CyrillicToLatin(text);
 
                     if (!string.Equals(result, originalText, StringComparison.Ordinal))
+                    {
+                        if (captureUndo)
+                        {
+                            ExcelTranslationUndoManager.CaptureCell(
+                                cell,
+                                value);
+                        }
+
                         cell.Value2 = result;
+                        changedCount++;
+                    }
                 }
                 catch
                 {
                     continue;
                 }
             }
+
+            return changedCount;
         }
 
         private void btnCyrillicToLatin_Click(object sender, RibbonControlEventArgs e)
