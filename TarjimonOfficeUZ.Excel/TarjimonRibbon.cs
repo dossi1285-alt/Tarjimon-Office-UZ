@@ -1,6 +1,7 @@
 ﻿using Microsoft.Office.Interop.Excel;
 using Microsoft.Office.Tools.Ribbon;
 using System;
+using System.IO;
 using System.Windows.Forms;
 using TarjimonOfficeUZ.Core.Translation;
 using TarjimonOfficeUZ.Shared;
@@ -15,6 +16,44 @@ namespace TarjimonOfficeUZ.Excel
             btnLatinToCyrillic.Image = ResourceLoader.LatinToCyrillic;
             btnCyrillicToLatin.Image = ResourceLoader.CyrillicToLatin;
             btnADX.Image = ResourceLoader.Settings;
+            EnsureUndoBridgeLoaded();
+        }
+
+        private void EnsureUndoBridgeLoaded()
+        {
+            try
+            {
+                string addInPath = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                    "Microsoft",
+                    "AddIns",
+                    "TarjimonOfficeUZ.UndoBridge.xlam");
+
+                if (!File.Exists(addInPath))
+                    return;
+
+                foreach (AddIn addIn in Globals.ThisAddIn.Application.AddIns)
+                {
+                    try
+                    {
+                        if (string.Equals(addIn.FullName, addInPath, StringComparison.OrdinalIgnoreCase))
+                        {
+                            addIn.Installed = true;
+                            return;
+                        }
+                    }
+                    catch
+                    {
+                    }
+                }
+
+                AddIn bridge = Globals.ThisAddIn.Application.AddIns.Add(addInPath, false);
+                bridge.Installed = true;
+            }
+            catch
+            {
+                // The bridge is optional until its one-time installer has been run.
+            }
         }
 
         private Worksheet GetActiveWorksheet()
