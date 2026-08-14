@@ -76,6 +76,10 @@ namespace TarjimonOfficeUZ.Excel
                 return;
             }
 
+            // One translation click = one undo operation. The snapshot is replaced
+            // before every new translation so older translation states are not mixed.
+            ExcelTranslationUndoManager.Clear();
+
             // The translation itself is frozen and remains unchanged.
             // Before changing cells, capture only the cells that will actually change.
             int changedCount = TranslateRangeCells(translationRange, latinToCyrillic, true);
