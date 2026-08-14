@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using Excel = Microsoft.Office.Interop.Excel;
+using ExcelInterop = global::Microsoft.Office.Interop.Excel;
 using Microsoft.Office.Tools.Excel;
 
 namespace TarjimonOfficeUZ.Excel
@@ -86,15 +86,15 @@ namespace TarjimonOfficeUZ.Excel
             }
         }
 
-        public static void CaptureCell(Excel.Range cell, object originalValue)
+        public static void CaptureCell(ExcelInterop.Range cell, object originalValue)
         {
             if (cell == null || isUndoing)
                 return;
 
             try
             {
-                Excel.Worksheet worksheet = cell.Worksheet as Excel.Worksheet;
-                Excel.Workbook workbook = worksheet == null ? null : worksheet.Parent as Excel.Workbook;
+                ExcelInterop.Worksheet worksheet = cell.Worksheet as ExcelInterop.Worksheet;
+                ExcelInterop.Workbook workbook = worksheet == null ? null : worksheet.Parent as ExcelInterop.Workbook;
 
                 if (worksheet == null || workbook == null)
                     return;
@@ -105,7 +105,7 @@ namespace TarjimonOfficeUZ.Excel
                     {
                         WorkbookFullName = workbook.FullName,
                         WorksheetName = worksheet.Name,
-                        Address = cell.Address[false, false, Excel.XlReferenceStyle.xlA1],
+                        Address = cell.Address[false, false, ExcelInterop.XlReferenceStyle.xlA1],
                         OriginalValue = originalValue
                     });
                 }
@@ -132,21 +132,21 @@ namespace TarjimonOfficeUZ.Excel
 
             try
             {
-                Excel.Application application = Globals.ThisAddIn.Application;
+                ExcelInterop.Application application = Globals.ThisAddIn.Application;
 
                 foreach (ExcelTranslationUndoSnapshot snapshot in snapshotCopy)
                 {
                     try
                     {
-                        Excel.Workbook workbook = FindWorkbook(application, snapshot.WorkbookFullName);
+                        ExcelInterop.Workbook workbook = FindWorkbook(application, snapshot.WorkbookFullName);
                         if (workbook == null)
                             continue;
 
-                        Excel.Worksheet worksheet = workbook.Worksheets[snapshot.WorksheetName] as Excel.Worksheet;
+                        ExcelInterop.Worksheet worksheet = workbook.Worksheets[snapshot.WorksheetName] as ExcelInterop.Worksheet;
                         if (worksheet == null)
                             continue;
 
-                        Excel.Range cell = worksheet.Range[snapshot.Address];
+                        ExcelInterop.Range cell = worksheet.Range[snapshot.Address];
                         if (cell.HasFormula)
                             continue;
 
@@ -167,9 +167,9 @@ namespace TarjimonOfficeUZ.Excel
             }
         }
 
-        private static Excel.Workbook FindWorkbook(Excel.Application application, string fullName)
+        private static ExcelInterop.Workbook FindWorkbook(ExcelInterop.Application application, string fullName)
         {
-            foreach (Excel.Workbook workbook in application.Workbooks)
+            foreach (ExcelInterop.Workbook workbook in application.Workbooks)
             {
                 try
                 {
