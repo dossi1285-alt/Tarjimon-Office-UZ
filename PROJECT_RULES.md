@@ -115,3 +115,35 @@ If Setup currently packages only Shared/dependency output, treat that as a block
 ## 11. Local tool prerequisite
 
 The local development environment now has HeatWave for Visual Studio installed for working with the WiX SDK-style installer project. This is an environment prerequisite, not a product dependency and not part of the installer package.
+
+## 12. Full-project audit memory
+
+The complete project audit is stored in `docs/PROJECT-AUDIT-2026-08-17.md` and must be treated as the detailed continuation of these rules.
+
+Important permanent findings from that audit:
+
+- `TarjimonOfficeUZ.Word3.csproj` was a temporary mistake, was deleted, and must not be recreated.
+- The full uploaded working tree was inspected; the apparent 35-file local change set was line-ending-only and must not be committed as code changes.
+- The final 1.0 product remains **Word + Excel + ONE MSI**.
+- The WiX project is source-correct in principle but is not yet release-complete until it builds and installs both add-ins in a real test.
+- Excel UndoBridge must be included and made operational by the single installer; manual post-install steps are not the 1.0 target.
+- WiX 32-bit registry components must use an architecture-safe directory arrangement.
+- Installer registration currently uses HKLM while the Shared startup-settings service writes HKCU; this must be deliberately reconciled and tested.
+- Word/Excel VSTO signing and trust are release blockers until a proper release certificate strategy is confirmed.
+- Test Explorer's current “no tests to run” message must first be checked for filtering; the project contains 10 regression tests.
+- Old documentation must not override the canonical 1.0 architecture.
+
+## 13. Mandatory assistant workflow
+
+For this project, the assistant must work with GitHub as the canonical project source and history.
+
+Before any consequential change:
+
+1. Read `PROJECT_RULES.md`.
+2. Read `docs/PROJECT-AUDIT-2026-08-17.md` when the task concerns build, installer, solution structure, signing, tests, or release.
+3. Inspect the GitHub branch/history before asking the user to repeat local work.
+4. Make the smallest justified change.
+5. Inspect the resulting diff.
+6. Only then ask the user to Pull origin / build / test as needed.
+
+Never silently forget the GitHub workflow or the ONE-installer Word+Excel architecture.
