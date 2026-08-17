@@ -1,0 +1,12 @@
+<Project Sdk="WixToolset.Sdk/7.0.0">
+  <PropertyGroup>
+    <OutputName>TarjimonOfficeUZ.Setup</OutputName>
+    <InstallerPlatform>x64</InstallerPlatform>
+    <DefineConstants>$(DefineConstants);ProductVersion=1.0.0</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TarjimonOfficeUZ.Word\TarjimonOfficeUZ.Word.csproj" />
+    <ProjectReference Include="..\TarjimonOfficeUZ.Excel\TarjimonOfficeUZ.Excel.csproj" />
+  </ItemGroup>
+</Project>
