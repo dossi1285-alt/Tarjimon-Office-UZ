@@ -26,7 +26,8 @@ The main solution components are:
 - `TarjimonOfficeUZ.Shared` — shared UI, settings, resources and services used by Office hosts.
 - `TarjimonOfficeUZ.Word` — Microsoft Word VSTO add-in.
 - `TarjimonOfficeUZ.Excel` — Microsoft Excel VSTO add-in.
-- `TarjimonOfficeUZ.Setup` — the single installer responsible for packaging the complete product.
+- `TarjimonOfficeUZ.Setup` — legacy installer project retained during migration.
+- `TarjimonOfficeUZ.Setup.Wix` — WiX 7 installer project for the final single-installer architecture.
 - `TarjimonOfficeUZ.Tests` — tests.
 
 ## 3. Installer acceptance criterion
@@ -101,12 +102,16 @@ Required synchronization discipline:
 
 ## 9. Installer technology decision
 
-WiX Toolset 7 was previously selected for the long-term installer architecture. The current `release/1.0-installer-cleanup` branch still contains the legacy Visual Studio Installer Project file `TarjimonOfficeUZ.Setup/TarjimonOfficeUZ.Setup.vdproj` and does not yet contain the WiX `.wxs` installer definition.
+WiX Toolset 7 is the selected final installer technology. `TarjimonOfficeUZ.Setup.Wix` is the target installer project. The legacy Visual Studio Installer Project `TarjimonOfficeUZ.Setup/TarjimonOfficeUZ.Setup.vdproj` is retained temporarily until the WiX installer is proven in build and real installation tests.
 
-This is an identified architecture/migration gap. Do not silently mix installer architectures or declare the installer complete until the chosen final installer architecture is explicitly resolved and satisfies the single-installer Word+Excel acceptance criteria.
+Do not silently mix installer architectures or declare the installer complete until the WiX installer satisfies the single-installer Word+Excel acceptance criteria.
 
 ## 10. Current 1.0 blocker definition
 
-A successful `TarjimonOfficeUZ.Setup.msi` build is not sufficient by itself. The Setup project must demonstrably package both `TarjimonOfficeUZ.Word` and `TarjimonOfficeUZ.Excel` outputs and the resulting single installer must install both add-ins.
+A successful legacy `TarjimonOfficeUZ.Setup.msi` build is not sufficient by itself. The final WiX Setup project must demonstrably package both `TarjimonOfficeUZ.Word` and `TarjimonOfficeUZ.Excel` outputs and the resulting single installer must install both add-ins.
 
 If Setup currently packages only Shared/dependency output, treat that as a blocker rather than a successful 1.0 installer.
+
+## 11. Local tool prerequisite
+
+The local development environment now has HeatWave for Visual Studio installed for working with the WiX SDK-style installer project. This is an environment prerequisite, not a product dependency and not part of the installer package.
