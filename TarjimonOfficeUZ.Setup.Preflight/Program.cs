@@ -234,43 +234,101 @@ namespace TarjimonOfficeUZ.Setup.Preflight
 
     internal sealed class ReviewForm : Form
     {
-        private readonly CheckedListBox list = new CheckedListBox();
-        public IEnumerable<AddinCandidate> SelectedItems => list.CheckedItems.Cast<AddinCandidate>();
+        private readonly ListView list = new ListView();
+        public IEnumerable<AddinCandidate> SelectedItems => list.CheckedItems.Cast<ListViewItem>().Select(x => (AddinCandidate)x.Tag);
 
         public ReviewForm(List<AddinCandidate> candidates)
         {
             Text = "Tarjimon Office UZ — mavjud Office tarjimonlari";
-            Width = 920; Height = 520; StartPosition = FormStartPosition.CenterScreen;
-            MinimizeBox = false; MaximizeBox = false;
+            Width = 760;
+            Height = 420;
+            StartPosition = FormStartPosition.CenterScreen;
+            MinimizeBox = false;
+            MaximizeBox = false;
+            FormBorderStyle = FormBorderStyle.FixedDialog;
+            Font = new Font("Segoe UI", 9F);
 
             var title = new Label
             {
-                Dock = DockStyle.Top, Height = 72,
+                Dock = DockStyle.Top,
+                Height = 76,
                 Text = "Kompyuterda mavjud Office tarjimon/add-inlar aniqlandi.\r\nO'chiriladiganlarini belgilang. Belgilanmaganlari saqlanadi.",
-                Font = new Font("Segoe UI", 11, FontStyle.Bold), Padding = new Padding(16, 14, 16, 8)
+                Font = new Font("Segoe UI", 10.5F, FontStyle.Bold),
+                Padding = new Padding(16, 12, 16, 6),
+                TextAlign = ContentAlignment.MiddleLeft
             };
             Controls.Add(title);
 
             list.Dock = DockStyle.Fill;
-            list.CheckOnClick = true;
-            list.HorizontalScrollbar = true;
-            foreach (var item in candidates) list.Items.Add(item, item.IsOwnProduct);
+            list.View = View.Details;
+            list.CheckBoxes = true;
+            list.FullRowSelect = true;
+            list.GridLines = true;
+            list.MultiSelect = true;
+            list.HideSelection = false;
+            list.HeaderStyle = ColumnHeaderStyle.Nonclickable;
+            list.Columns.Add("Qo'shimcha nomi", 245);
+            list.Columns.Add("Mahsulot nomi", 170);
+            list.Columns.Add("Versiya", 75);
+            list.Columns.Add("Dastur", 100);
+
+            foreach (var item in candidates)
+            {
+                var row = new ListViewItem(item.Product);
+                row.SubItems.Add("Tarjimon Office UZ");
+                row.SubItems.Add(string.IsNullOrWhiteSpace(item.Version) ? "—" : item.Version);
+                row.SubItems.Add(item.Host);
+                row.Tag = item;
+                row.Checked = item.IsOwnProduct;
+                list.Items.Add(row);
+            }
             Controls.Add(list);
 
             var info = new Label
             {
-                Dock = DockStyle.Bottom, Height = 58,
+                Dock = DockStyle.Bottom,
+                Height = 58,
                 Text = "Faqat ro'yxatda ko'rsatilgan va qo'llab-quvvatlanadigan uninstall mexanizmi mavjud mahsulotlar olib tashlanadi.\r\nUchinchi tomon add-inlari roziliksiz o'chirilmaydi.",
-                Padding = new Padding(16, 8, 16, 4), ForeColor = Color.DarkSlateGray
+                Padding = new Padding(16, 7, 16, 4),
+                ForeColor = Color.DarkSlateGray,
+                TextAlign = ContentAlignment.MiddleLeft
             };
             Controls.Add(info);
 
-            var panel = new FlowLayoutPanel { Dock = DockStyle.Bottom, Height = 52, FlowDirection = FlowDirection.RightToLeft, Padding = new Padding(8) };
-            var cancel = new Button { Text = "Bekor qilish", Width = 120, DialogResult = DialogResult.Cancel };
-            var keep = new Button { Text = "Hech narsani o'chirmasdan davom etish", Width = 230, DialogResult = DialogResult.OK };
-            var remove = new Button { Text = "Tanlanganlarni olib tashlash va davom etish", Width = 260, DialogResult = DialogResult.OK };
-            panel.Controls.Add(cancel); panel.Controls.Add(keep); panel.Controls.Add(remove); Controls.Add(panel);
-            AcceptButton = remove; CancelButton = cancel;
+            var panel = new Panel { Dock = DockStyle.Bottom, Height = 54, Padding = new Padding(8, 5, 8, 7) };
+            var cancel = new Button
+            {
+                Text = "Bekor qilish",
+                Width = 120,
+                Height = 34,
+                DialogResult = DialogResult.Cancel,
+                Anchor = AnchorStyles.Top | AnchorStyles.Right
+            };
+            var confirm = new Button
+            {
+                Text = "Tasdiqlash",
+                Width = 135,
+                Height = 34,
+                DialogResult = DialogResult.OK,
+                Anchor = AnchorStyles.Top | AnchorStyles.Right
+            };
+            cancel.Left = panel.ClientSize.Width - cancel.Width;
+            confirm.Left = cancel.Left - confirm.Width - 8;
+            cancel.Top = 5;
+            confirm.Top = 5;
+            cancel.BringToFront();
+            confirm.BringToFront();
+            panel.Resize += (s, e) =>
+            {
+                cancel.Left = panel.ClientSize.Width - cancel.Width;
+                confirm.Left = cancel.Left - confirm.Width - 8;
+            };
+            panel.Controls.Add(cancel);
+            panel.Controls.Add(confirm);
+            Controls.Add(panel);
+
+            AcceptButton = confirm;
+            CancelButton = cancel;
         }
     }
 }
