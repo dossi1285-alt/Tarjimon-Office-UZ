@@ -1,0 +1,279 @@
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Drawing;
+using System.IO;
+using System.Linq;
+using System.Text.RegularExpressions;
+using System.Windows.Forms;
+using Microsoft.Win32;
+
+namespace TarjimonOfficeUZ.Setup.Preflight
+{
+    internal sealed class AddinCandidate
+    {
+        public string Product { get; set; }
+        public string Publisher { get; set; }
+        public string Version { get; set; }
+        public string Host { get; set; }
+        public string Registration { get; set; }
+        public string UninstallString { get; set; }
+        public bool IsOwnProduct { get; set; }
+
+        public override string ToString()
+        {
+            var owner = string.IsNullOrWhiteSpace(Publisher) ? "Publisher unknown" : Publisher;
+            var version = string.IsNullOrWhiteSpace(Version) ? "Version unknown" : Version;
+            return $"{Product}  |  {owner}  |  {version}  |  {Host}";
+        }
+    }
+
+    internal static class Program
+    {
+        private static readonly string[] TranslatorWords =
+        {
+            "tarjimon", "translator", "translation", "translate", "translator", "language",
+            "lingua", "перевод", "переводчик", "переводчик", "kl office", "office uz"
+        };
+
+        [STAThread]
+        private static int Main()
+        {
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+
+            try
+            {
+                var candidates = ScanCandidates();
+                if (candidates.Count > 0)
+                {
+                    using (var form = new ReviewForm(candidates))
+                    {
+                        if (form.ShowDialog() != DialogResult.OK)
+                            return 1602;
+
+                        foreach (var item in form.SelectedItems)
+                        {
+                            if (string.IsNullOrWhiteSpace(item.UninstallString))
+                            {
+                                MessageBox.Show(
+                                    $"'{item.Product}' uchun qo'llab-quvvatlanadigan uninstall buyrug'i topilmadi. U o'chirilmaydi.",
+                                    "Tarjimon Office UZ", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                                continue;
+                            }
+
+                            if (!RunUninstall(item.UninstallString))
+                                return 1603;
+                        }
+                    }
+                }
+
+                var msi = ExtractMsi();
+                var result = Process.Start(new ProcessStartInfo
+                {
+                    FileName = "msiexec.exe",
+                    Arguments = "/i \"" + msi + "\" /passive",
+                    UseShellExecute = true,
+                    Verb = "runas"
+                });
+                return result == null ? 1603 : 0;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString(), "Tarjimon Office UZ — Installer xatosi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return 1603;
+            }
+        }
+
+        private static List<AddinCandidate> ScanCandidates()
+        {
+            var result = new List<AddinCandidate>();
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var views = Environment.Is64BitOperatingSystem
+                ? new[] { RegistryView.Registry64, RegistryView.Registry32 }
+                : new[] { RegistryView.Default };
+
+            foreach (var view in views)
+            {
+                foreach (var hive in new[] { RegistryHive.LocalMachine, RegistryHive.CurrentUser })
+                {
+                    foreach (var host in new[] { "Word", "Excel" })
+                    {
+                        using (var root = RegistryKey.OpenBaseKey(hive, view))
+                        using (var addins = root.OpenSubKey($"SOFTWARE\\Microsoft\\Office\\{host}\\Addins"))
+                        {
+                            if (addins == null) continue;
+                            foreach (var keyName in addins.GetSubKeyNames())
+                            {
+                                using (var key = addins.OpenSubKey(keyName))
+                                {
+                                    if (key == null) continue;
+                                    var friendly = Convert.ToString(key.GetValue("FriendlyName")) ?? keyName;
+                                    var description = Convert.ToString(key.GetValue("Description")) ?? string.Empty;
+                                    var manifest = Convert.ToString(key.GetValue("Manifest")) ?? string.Empty;
+                                    var text = (keyName + " " + friendly + " " + description + " " + manifest).ToLowerInvariant();
+                                    if (!TranslatorWords.Any(text.Contains)) continue;
+
+                                    var uninstall = FindUninstall(friendly, keyName, text, out var publisher, out var version);
+                                    var own = text.Contains("tarjimon office uz") || text.Contains("tarjimonofficeuz");
+                                    var registration = $"{hive}\\{view}\\SOFTWARE\\Microsoft\\Office\\{host}\\Addins\\{keyName}";
+                                    var signature = registration + "|" + friendly;
+                                    if (!seen.Add(signature)) continue;
+
+                                    result.Add(new AddinCandidate
+                                    {
+                                        Product = friendly,
+                                        Publisher = publisher,
+                                        Version = version,
+                                        Host = host,
+                                        Registration = registration,
+                                        UninstallString = uninstall,
+                                        IsOwnProduct = own
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return result.OrderByDescending(x => x.IsOwnProduct).ThenBy(x => x.Product).ToList();
+        }
+
+        private static string FindUninstall(string friendly, string keyName, string text, out string publisher, out string version)
+        {
+            publisher = string.Empty;
+            version = string.Empty;
+            var uninstallKeys = new List<RegistryKey>();
+            try
+            {
+                var views = Environment.Is64BitOperatingSystem
+                    ? new[] { RegistryView.Registry64, RegistryView.Registry32 }
+                    : new[] { RegistryView.Default };
+
+                foreach (var view in views)
+                {
+                    foreach (var hive in new[] { RegistryHive.LocalMachine, RegistryHive.CurrentUser })
+                    {
+                        var root = RegistryKey.OpenBaseKey(hive, view);
+                        var parent = root.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall");
+                        if (parent == null) { root.Dispose(); continue; }
+                        foreach (var name in parent.GetSubKeyNames())
+                        {
+                            var key = parent.OpenSubKey(name);
+                            if (key == null) continue;
+                            var display = Convert.ToString(key.GetValue("DisplayName")) ?? string.Empty;
+                            var uninstall = Convert.ToString(key.GetValue("UninstallString")) ?? string.Empty;
+                            var pub = Convert.ToString(key.GetValue("Publisher")) ?? string.Empty;
+                            var ver = Convert.ToString(key.GetValue("DisplayVersion")) ?? string.Empty;
+                            var candidateText = (display + " " + pub + " " + name).ToLowerInvariant();
+                            if (!string.IsNullOrWhiteSpace(uninstall) &&
+                                (candidateText.Contains(friendly.ToLowerInvariant()) || candidateText.Contains(keyName.ToLowerInvariant()) ||
+                                 TranslatorWords.Any(candidateText.Contains)))
+                            {
+                                publisher = pub;
+                                version = ver;
+                                return uninstall;
+                            }
+                            key.Dispose();
+                        }
+                        parent.Dispose();
+                        root.Dispose();
+                    }
+                }
+            }
+            catch { }
+            finally { foreach (var k in uninstallKeys) k.Dispose(); }
+            return string.Empty;
+        }
+
+        private static bool RunUninstall(string commandLine)
+        {
+            string fileName;
+            string arguments;
+            if (commandLine.TrimStart().StartsWith("msiexec", StringComparison.OrdinalIgnoreCase))
+            {
+                fileName = "msiexec.exe";
+                arguments = Regex.Replace(commandLine, @"(?i)(^|\s)/i(\s|$)", " /x ");
+            }
+            else if (commandLine.TrimStart().StartsWith("\""))
+            {
+                var end = commandLine.IndexOf('"', 1);
+                fileName = end > 0 ? commandLine.Substring(1, end - 1) : commandLine.Trim('"');
+                arguments = end > 0 ? commandLine.Substring(end + 1).Trim() : string.Empty;
+            }
+            else
+            {
+                var split = commandLine.IndexOf(' ');
+                fileName = split > 0 ? commandLine.Substring(0, split) : commandLine;
+                arguments = split > 0 ? commandLine.Substring(split + 1) : string.Empty;
+            }
+
+            using (var p = Process.Start(new ProcessStartInfo
+            {
+                FileName = fileName,
+                Arguments = arguments,
+                UseShellExecute = true,
+                Verb = "runas"
+            }))
+            {
+                p.WaitForExit();
+                return p.ExitCode == 0 || p.ExitCode == 3010 || p.ExitCode == 1641;
+            }
+        }
+
+        private static string ExtractMsi()
+        {
+            var resource = typeof(Program).Assembly.GetManifestResourceNames()
+                .FirstOrDefault(x => x.EndsWith("TarjimonOfficeUZSetup.msi", StringComparison.OrdinalIgnoreCase));
+            if (resource == null) throw new FileNotFoundException("Embedded MSI topilmadi.");
+
+            var path = Path.Combine(Path.GetTempPath(), "TarjimonOfficeUZ", Guid.NewGuid().ToString("N") + ".msi");
+            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            using (var input = typeof(Program).Assembly.GetManifestResourceStream(resource))
+            using (var output = File.Create(path)) input.CopyTo(output);
+            return path;
+        }
+    }
+
+    internal sealed class ReviewForm : Form
+    {
+        private readonly CheckedListBox list = new CheckedListBox();
+        private readonly List<AddinCandidate> items;
+        public IEnumerable<AddinCandidate> SelectedItems => list.CheckedItems.Cast<AddinCandidate>();
+
+        public ReviewForm(List<AddinCandidate> candidates)
+        {
+            items = candidates;
+            Text = "Tarjimon Office UZ — mavjud Office tarjimonlari";
+            Width = 920; Height = 520; StartPosition = FormStartPosition.CenterScreen;
+            MinimizeBox = false; MaximizeBox = false;
+
+            var title = new Label
+            {
+                Dock = DockStyle.Top, Height = 72,
+                Text = "Kompyuterda mavjud Office tarjimon/add-inlar aniqlandi.\r\nO'chiriladiganlarini belgilang. Belgilanmaganlari saqlanadi.",
+                Font = new Font("Segoe UI", 11, FontStyle.Bold), Padding = new Padding(16, 14, 16, 8)
+            };
+            Controls.Add(title);
+
+            list.Dock = DockStyle.Fill; CheckOnClick = true; list.HorizontalScrollbar = true;
+            foreach (var item in items) list.Items.Add(item, item.IsOwnProduct);
+            Controls.Add(list);
+
+            var info = new Label
+            {
+                Dock = DockStyle.Bottom, Height = 58,
+                Text = "Faqat ro'yxatda ko'rsatilgan va qo'llab-quvvatlanadigan uninstall mexanizmi mavjud mahsulotlar olib tashlanadi.\r\nUchinchi tomon add-inlari roziliksiz o'chirilmaydi.",
+                Padding = new Padding(16, 8, 16, 4), ForeColor = Color.DarkSlateGray
+            };
+            Controls.Add(info);
+
+            var panel = new FlowLayoutPanel { Dock = DockStyle.Bottom, Height = 52, FlowDirection = FlowDirection.RightToLeft, Padding = new Padding(8) };
+            var cancel = new Button { Text = "Qoldirish / bekor qilish", Width = 160, DialogResult = DialogResult.Cancel };
+            var ok = new Button { Text = "Tanlanganlarni olib tashlash va davom etish", Width = 250, DialogResult = DialogResult.OK };
+            panel.Controls.Add(cancel); panel.Controls.Add(ok); Controls.Add(panel);
+            AcceptButton = ok; CancelButton = cancel;
+        }
+    }
+}
