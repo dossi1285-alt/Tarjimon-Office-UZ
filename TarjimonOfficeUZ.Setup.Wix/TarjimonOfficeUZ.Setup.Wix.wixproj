@@ -19,7 +19,7 @@
       Properties="Configuration=$(Configuration);Platform=AnyCPU;MsiSource=$(TargetPath)"
       Targets="Restore;Build" />
     <Copy
-      SourceFiles="$(MSBuildProjectDirectory)\..\TarjimonOfficeUZ.Setup.Preflight\bin\$(Configuration)\TarjimonOfficeUZSetup.exe"
+      SourceFiles="$(MSBuildProjectDirectory)\..\TarjimonOfficeUZ.Setup.Preflight\bin\$(Configuration)\net48\TarjimonOfficeUZSetup.exe"
       DestinationFolder="$(OutputPath)" />
   </Target>
 </Project>
