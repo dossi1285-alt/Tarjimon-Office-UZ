@@ -10,14 +10,14 @@
     <ProjectReference Include="..\TarjimonOfficeUZ.Excel\TarjimonOfficeUZ.Excel.csproj" />
   </ItemGroup>
 
-  <!-- Build the combined MSI first, then build the single-file preflight
-       launcher with that MSI embedded. The launcher performs migration
-       review before Windows Installer starts, avoiding nested MSI actions. -->
+  <!-- Build the combined MSI first, then restore and build the single-file
+       preflight launcher with that MSI embedded. The launcher performs
+       migration review before Windows Installer starts, avoiding nested MSI actions. -->
   <Target Name="BuildSingleInstallerLauncher" AfterTargets="Build">
     <MSBuild
       Projects="$(MSBuildProjectDirectory)\..\TarjimonOfficeUZ.Setup.Preflight\TarjimonOfficeUZ.Setup.Preflight.csproj"
       Properties="Configuration=$(Configuration);Platform=AnyCPU;MsiSource=$(TargetPath)"
-      Targets="Build" />
+      Targets="Restore;Build" />
     <Copy
       SourceFiles="$(MSBuildProjectDirectory)\..\TarjimonOfficeUZ.Setup.Preflight\bin\$(Configuration)\TarjimonOfficeUZSetup.exe"
       DestinationFolder="$(OutputPath)" />
