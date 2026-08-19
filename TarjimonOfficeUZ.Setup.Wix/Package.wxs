@@ -16,6 +16,13 @@
       </Directory>
     </StandardDirectory>
 
+    <!-- Separate 32-bit registry component directory. This directory is
+         intentionally under ProgramFilesFolder so Bitness="always32"
+         components do not use a 64-bit directory. -->
+    <StandardDirectory Id="ProgramFilesFolder">
+      <Directory Id="REG32DIR" Name="Tarjimon Office UZ Registry" />
+    </StandardDirectory>
+
     <!--
       The Word and Excel project references create WiX bind paths and also
       enforce the build order. Files are harvested from the actual project
@@ -30,24 +37,24 @@
       <Exclude Files="!(bindpath.TarjimonOfficeUZ.Excel)\**\*.pdb" />
     </Files>
 
-    <!-- VSTO registration for Word. The two components target the 64-bit
-         and 32-bit registry views so one x64 MSI works with either Office
-         bitness on 64-bit Windows. -->
+    <!-- VSTO registration for Word. The Manifest value deliberately uses
+         the installed directory path instead of a cross-component [#FileId]
+         reference, avoiding ICE69 while still producing the VSTO manifest URL. -->
     <Component Id="WordAddinRegistration64" Directory="WORDDIR">
       <RegistryKey Root="HKLM" Key="Software\Microsoft\Office\Word\Addins\TarjimonOfficeUZ.Word">
         <RegistryValue Name="Description" Type="string" Value="Tarjimon Office UZ Word add-in" />
         <RegistryValue Name="FriendlyName" Type="string" Value="Tarjimon Office UZ" />
         <RegistryValue Name="LoadBehavior" Type="integer" Value="3" />
-        <RegistryValue Name="Manifest" Type="string" Value="file:///[#TarjimonOfficeUZ.Word.vsto]|vstolocal" KeyPath="yes" />
+        <RegistryValue Name="Manifest" Type="string" Value="file:///[WORDDIR]TarjimonOfficeUZ.Word.vsto|vstolocal" KeyPath="yes" />
       </RegistryKey>
     </Component>
 
-    <Component Id="WordAddinRegistration32" Directory="WORDDIR" Bitness="always32">
+    <Component Id="WordAddinRegistration32" Directory="REG32DIR" Bitness="always32">
       <RegistryKey Root="HKLM" Key="Software\Microsoft\Office\Word\Addins\TarjimonOfficeUZ.Word">
         <RegistryValue Name="Description" Type="string" Value="Tarjimon Office UZ Word add-in" />
         <RegistryValue Name="FriendlyName" Type="string" Value="Tarjimon Office UZ" />
         <RegistryValue Name="LoadBehavior" Type="integer" Value="3" />
-        <RegistryValue Name="Manifest" Type="string" Value="file:///[#TarjimonOfficeUZ.Word.vsto]|vstolocal" KeyPath="yes" />
+        <RegistryValue Name="Manifest" Type="string" Value="file:///[WORDDIR]TarjimonOfficeUZ.Word.vsto|vstolocal" KeyPath="yes" />
       </RegistryKey>
     </Component>
 
@@ -57,16 +64,16 @@
         <RegistryValue Name="Description" Type="string" Value="Tarjimon Office UZ Excel add-in" />
         <RegistryValue Name="FriendlyName" Type="string" Value="Tarjimon Office UZ" />
         <RegistryValue Name="LoadBehavior" Type="integer" Value="3" />
-        <RegistryValue Name="Manifest" Type="string" Value="file:///[#TarjimonOfficeUZ.Excel.vsto]|vstolocal" KeyPath="yes" />
+        <RegistryValue Name="Manifest" Type="string" Value="file:///[EXCELDIR]TarjimonOfficeUZ.Excel.vsto|vstolocal" KeyPath="yes" />
       </RegistryKey>
     </Component>
 
-    <Component Id="ExcelAddinRegistration32" Directory="EXCELDIR" Bitness="always32">
+    <Component Id="ExcelAddinRegistration32" Directory="REG32DIR" Bitness="always32">
       <RegistryKey Root="HKLM" Key="Software\Microsoft\Office\Excel\Addins\TarjimonOfficeUZ.Excel">
         <RegistryValue Name="Description" Type="string" Value="Tarjimon Office UZ Excel add-in" />
         <RegistryValue Name="FriendlyName" Type="string" Value="Tarjimon Office UZ" />
         <RegistryValue Name="LoadBehavior" Type="integer" Value="3" />
-        <RegistryValue Name="Manifest" Type="string" Value="file:///[#TarjimonOfficeUZ.Excel.vsto]|vstolocal" KeyPath="yes" />
+        <RegistryValue Name="Manifest" Type="string" Value="file:///[EXCELDIR]TarjimonOfficeUZ.Excel.vsto|vstolocal" KeyPath="yes" />
       </RegistryKey>
     </Component>
 
