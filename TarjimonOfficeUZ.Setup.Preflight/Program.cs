@@ -32,8 +32,8 @@ namespace TarjimonOfficeUZ.Setup.Preflight
     {
         private static readonly string[] TranslatorWords =
         {
-            "tarjimon", "translator", "translation", "translate", "translator", "language",
-            "lingua", "перевод", "переводчик", "переводчик", "kl office", "office uz"
+            "tarjimon", "translator", "translation", "translate", "language",
+            "lingua", "перевод", "переводчик", "kl office", "office uz"
         };
 
         [STAThread]
@@ -114,7 +114,7 @@ namespace TarjimonOfficeUZ.Setup.Preflight
                                     var text = (keyName + " " + friendly + " " + description + " " + manifest).ToLowerInvariant();
                                     if (!TranslatorWords.Any(text.Contains)) continue;
 
-                                    var uninstall = FindUninstall(friendly, keyName, text, out var publisher, out var version);
+                                    var uninstall = FindUninstall(friendly, keyName, out var publisher, out var version);
                                     var own = text.Contains("tarjimon office uz") || text.Contains("tarjimonofficeuz");
                                     var registration = $"{hive}\\{view}\\SOFTWARE\\Microsoft\\Office\\{host}\\Addins\\{keyName}";
                                     var signature = registration + "|" + friendly;
@@ -140,50 +140,46 @@ namespace TarjimonOfficeUZ.Setup.Preflight
             return result.OrderByDescending(x => x.IsOwnProduct).ThenBy(x => x.Product).ToList();
         }
 
-        private static string FindUninstall(string friendly, string keyName, string text, out string publisher, out string version)
+        private static string FindUninstall(string friendly, string keyName, out string publisher, out string version)
         {
             publisher = string.Empty;
             version = string.Empty;
-            var uninstallKeys = new List<RegistryKey>();
-            try
-            {
-                var views = Environment.Is64BitOperatingSystem
-                    ? new[] { RegistryView.Registry64, RegistryView.Registry32 }
-                    : new[] { RegistryView.Default };
+            var views = Environment.Is64BitOperatingSystem
+                ? new[] { RegistryView.Registry64, RegistryView.Registry32 }
+                : new[] { RegistryView.Default };
 
-                foreach (var view in views)
+            foreach (var view in views)
+            {
+                foreach (var hive in new[] { RegistryHive.LocalMachine, RegistryHive.CurrentUser })
                 {
-                    foreach (var hive in new[] { RegistryHive.LocalMachine, RegistryHive.CurrentUser })
+                    using (var root = RegistryKey.OpenBaseKey(hive, view))
+                    using (var parent = root.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall"))
                     {
-                        var root = RegistryKey.OpenBaseKey(hive, view);
-                        var parent = root.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall");
-                        if (parent == null) { root.Dispose(); continue; }
+                        if (parent == null) continue;
                         foreach (var name in parent.GetSubKeyNames())
                         {
-                            var key = parent.OpenSubKey(name);
-                            if (key == null) continue;
-                            var display = Convert.ToString(key.GetValue("DisplayName")) ?? string.Empty;
-                            var uninstall = Convert.ToString(key.GetValue("UninstallString")) ?? string.Empty;
-                            var pub = Convert.ToString(key.GetValue("Publisher")) ?? string.Empty;
-                            var ver = Convert.ToString(key.GetValue("DisplayVersion")) ?? string.Empty;
-                            var candidateText = (display + " " + pub + " " + name).ToLowerInvariant();
-                            if (!string.IsNullOrWhiteSpace(uninstall) &&
-                                (candidateText.Contains(friendly.ToLowerInvariant()) || candidateText.Contains(keyName.ToLowerInvariant()) ||
-                                 TranslatorWords.Any(candidateText.Contains)))
+                            using (var key = parent.OpenSubKey(name))
                             {
-                                publisher = pub;
-                                version = ver;
-                                return uninstall;
+                                if (key == null) continue;
+                                var display = Convert.ToString(key.GetValue("DisplayName")) ?? string.Empty;
+                                var uninstall = Convert.ToString(key.GetValue("UninstallString")) ?? string.Empty;
+                                var pub = Convert.ToString(key.GetValue("Publisher")) ?? string.Empty;
+                                var ver = Convert.ToString(key.GetValue("DisplayVersion")) ?? string.Empty;
+                                var candidateText = (display + " " + pub + " " + name).ToLowerInvariant();
+                                if (!string.IsNullOrWhiteSpace(uninstall) &&
+                                    (candidateText.Contains(friendly.ToLowerInvariant()) ||
+                                     candidateText.Contains(keyName.ToLowerInvariant()) ||
+                                     TranslatorWords.Any(candidateText.Contains)))
+                                {
+                                    publisher = pub;
+                                    version = ver;
+                                    return uninstall;
+                                }
                             }
-                            key.Dispose();
                         }
-                        parent.Dispose();
-                        root.Dispose();
                     }
                 }
             }
-            catch { }
-            finally { foreach (var k in uninstallKeys) k.Dispose(); }
             return string.Empty;
         }
 
@@ -239,12 +235,10 @@ namespace TarjimonOfficeUZ.Setup.Preflight
     internal sealed class ReviewForm : Form
     {
         private readonly CheckedListBox list = new CheckedListBox();
-        private readonly List<AddinCandidate> items;
         public IEnumerable<AddinCandidate> SelectedItems => list.CheckedItems.Cast<AddinCandidate>();
 
         public ReviewForm(List<AddinCandidate> candidates)
         {
-            items = candidates;
             Text = "Tarjimon Office UZ — mavjud Office tarjimonlari";
             Width = 920; Height = 520; StartPosition = FormStartPosition.CenterScreen;
             MinimizeBox = false; MaximizeBox = false;
@@ -257,8 +251,10 @@ namespace TarjimonOfficeUZ.Setup.Preflight
             };
             Controls.Add(title);
 
-            list.Dock = DockStyle.Fill; CheckOnClick = true; list.HorizontalScrollbar = true;
-            foreach (var item in items) list.Items.Add(item, item.IsOwnProduct);
+            list.Dock = DockStyle.Fill;
+            list.CheckOnClick = true;
+            list.HorizontalScrollbar = true;
+            foreach (var item in candidates) list.Items.Add(item, item.IsOwnProduct);
             Controls.Add(list);
 
             var info = new Label
