@@ -14,10 +14,11 @@
     <Reference Include="System.Drawing" />
   </ItemGroup>
 
-  <Target Name="EmbedBuiltMsi" BeforeTargets="PrepareForBuild" Condition="'$(MsiSource)' != '' and Exists('$(MsiSource)')">
+  <Target Name="EmbedBuiltMsi" BeforeTargets="BeforeResGen" Condition="'$(MsiSource)' != '' and Exists('$(MsiSource)')">
     <ItemGroup>
       <EmbeddedResource Include="$(MsiSource)">
         <LogicalName>TarjimonOfficeUZSetup.msi</LogicalName>
+        <Type>Non-Resx</Type>
       </EmbeddedResource>
     </ItemGroup>
   </Target>
