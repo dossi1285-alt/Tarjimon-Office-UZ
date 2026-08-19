@@ -266,10 +266,11 @@ namespace TarjimonOfficeUZ.Setup.Preflight
             Controls.Add(info);
 
             var panel = new FlowLayoutPanel { Dock = DockStyle.Bottom, Height = 52, FlowDirection = FlowDirection.RightToLeft, Padding = new Padding(8) };
-            var cancel = new Button { Text = "Qoldirish / bekor qilish", Width = 160, DialogResult = DialogResult.Cancel };
-            var ok = new Button { Text = "Tanlanganlarni olib tashlash va davom etish", Width = 250, DialogResult = DialogResult.OK };
-            panel.Controls.Add(cancel); panel.Controls.Add(ok); Controls.Add(panel);
-            AcceptButton = ok; CancelButton = cancel;
+            var cancel = new Button { Text = "Bekor qilish", Width = 120, DialogResult = DialogResult.Cancel };
+            var keep = new Button { Text = "Hech narsani o'chirmasdan davom etish", Width = 230, DialogResult = DialogResult.OK };
+            var remove = new Button { Text = "Tanlanganlarni olib tashlash va davom etish", Width = 260, DialogResult = DialogResult.OK };
+            panel.Controls.Add(cancel); panel.Controls.Add(keep); panel.Controls.Add(remove); Controls.Add(panel);
+            AcceptButton = remove; CancelButton = cancel;
         }
     }
 }
