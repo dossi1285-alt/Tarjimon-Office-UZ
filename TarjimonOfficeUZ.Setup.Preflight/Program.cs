@@ -257,9 +257,9 @@ namespace TarjimonOfficeUZ.Setup.Preflight
                 Padding = new Padding(16, 12, 16, 6),
                 TextAlign = ContentAlignment.MiddleLeft
             };
-            Controls.Add(title);
 
-            list.Dock = DockStyle.Fill;
+            // Keep the list below the title explicitly. The top offset is approximately one full item height,
+            // leaving clean space above the first data row and preventing the first row from being clipped.
             list.View = View.Details;
             list.CheckBoxes = true;
             list.FullRowSelect = true;
@@ -282,7 +282,6 @@ namespace TarjimonOfficeUZ.Setup.Preflight
                 row.Checked = item.IsOwnProduct;
                 list.Items.Add(row);
             }
-            Controls.Add(list);
 
             var info = new Label
             {
@@ -293,7 +292,6 @@ namespace TarjimonOfficeUZ.Setup.Preflight
                 ForeColor = Color.DarkSlateGray,
                 TextAlign = ContentAlignment.MiddleLeft
             };
-            Controls.Add(info);
 
             var panel = new Panel { Dock = DockStyle.Bottom, Height = 54, Padding = new Padding(8, 5, 8, 7) };
             var cancel = new Button
@@ -325,6 +323,16 @@ namespace TarjimonOfficeUZ.Setup.Preflight
             };
             panel.Controls.Add(cancel);
             panel.Controls.Add(confirm);
+
+            // Explicit layout avoids WinForms Dock z-order overlap. The list starts after the title
+            // with one row-height of clean top space, while the remaining design stays unchanged.
+            list.Location = new Point(16, 100);
+            list.Size = new Size(712, 200);
+            list.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+
+            Controls.Add(list);
+            Controls.Add(title);
+            Controls.Add(info);
             Controls.Add(panel);
 
             AcceptButton = confirm;
