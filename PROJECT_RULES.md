@@ -2,14 +2,14 @@
 
 ## 1. Canonical 1.0 architecture
 
-**Tarjimon Office UZ 1.0 uses ONE installer only.**
+**Tarjimon Office UZ 1.0 uses ONE user-facing installer only.**
 
-The final product must be installed through a single installer (one MSI/setup package). The installer installs and configures both Office add-ins:
+The final product must be installed through a single user-facing setup package. The setup installs and configures both Office add-ins:
 
 - Microsoft Word add-in: `TarjimonOfficeUZ.Word`
 - Microsoft Excel add-in: `TarjimonOfficeUZ.Excel`
 
-After one installation, the product must be available in both Word and Excel.
+The WiX MSI remains the combined Word + Excel payload. The recommended distributed installer is `TarjimonOfficeUZSetup.exe`, which performs the pre-install migration review and embeds/launches the combined MSI.
 
 ### Forbidden architecture for 1.0
 
@@ -17,6 +17,7 @@ After one installation, the product must be available in both Word and Excel.
 - Do not create a separate Excel installer.
 - Do not split the final 1.0 installation into two independent installers.
 - Do not treat a successful Word-only MSI build as a completed 1.0 installer.
+- Do not silently uninstall third-party Office add-ins.
 
 ## 2. Project structure
 
@@ -27,14 +28,15 @@ The main solution components are:
 - `TarjimonOfficeUZ.Word` — Microsoft Word VSTO add-in.
 - `TarjimonOfficeUZ.Excel` — Microsoft Excel VSTO add-in.
 - `TarjimonOfficeUZ.Setup` — legacy installer project retained during migration.
-- `TarjimonOfficeUZ.Setup.Wix` — WiX 7 installer project for the final single-installer architecture.
+- `TarjimonOfficeUZ.Setup.Wix` — WiX 7 installer project for the combined Word + Excel MSI payload.
+- `TarjimonOfficeUZ.Setup.Preflight` — .NET Framework 4.8 user-facing migration/preflight launcher that embeds the generated MSI.
 - `TarjimonOfficeUZ.Tests` — tests.
 
 ## 3. Installer acceptance criterion
 
 The 1.0 installer is considered complete only when all of the following are true:
 
-1. One installer package is produced.
+1. One user-facing installer package is produced.
 2. The installer contains the Word add-in.
 3. The installer contains the Excel add-in.
 4. One installation makes the add-in available in Word.
@@ -42,7 +44,8 @@ The 1.0 installer is considered complete only when all of the following are true
 6. Word functionality is tested after installation.
 7. Excel functionality is tested after installation.
 8. A clean install/reinstall/uninstall path is tested.
-9. Existing compatible Office add-ins are handled through an explicit pre-install review/consent flow described in Section 14.
+9. Existing relevant Office add-ins are handled through an explicit pre-install review/consent flow.
+10. The preflight launcher is the recommended distribution entry point for migration scenarios.
 
 ## 4. Change discipline
 
@@ -57,7 +60,7 @@ When modifying project files, especially `.csproj` files:
 
 ## 5. Word and Excel are equal 1.0 targets
 
-Word and Excel must be tested independently, but they are released together through the same installer.
+Word and Excel must be tested independently, but they are released together through the same user-facing installer.
 
 A Word-only successful build means:
 
@@ -75,9 +78,11 @@ The 1.0 release can be called **100% complete / frozen** only after:
 - Word build is successful.
 - Excel build is successful.
 - One combined Setup/MSI build is successful.
+- The preflight launcher builds successfully with the generated MSI embedded.
 - The combined installer installs both add-ins.
 - Word real-world test is successful.
 - Excel real-world test is successful.
+- Migration/consent test matrix passes.
 - No known 1.0 blocker remains.
 
 ## 7. Working rule for the assistant
@@ -104,15 +109,11 @@ Required synchronization discipline:
 
 ## 9. Installer technology decision
 
-WiX Toolset 7 is the selected final installer technology. `TarjimonOfficeUZ.Setup.Wix` is the target installer project. The legacy Visual Studio Installer Project `TarjimonOfficeUZ.Setup/TarjimonOfficeUZ.Setup.vdproj` is retained temporarily until the WiX installer is proven in build and real installation tests.
-
-Do not silently mix installer architectures or declare the installer complete until the WiX installer satisfies the single-installer Word+Excel acceptance criteria.
+WiX Toolset 7 is the selected installer technology for the combined MSI payload. `TarjimonOfficeUZ.Setup.Wix` is the target MSI project. The legacy Visual Studio Installer Project `TarjimonOfficeUZ.Setup/TarjimonOfficeUZ.Setup.vdproj` is retained temporarily until the WiX installer and preflight flow are proven in build and real installation tests.
 
 ## 10. Current 1.0 blocker definition
 
-A successful legacy `TarjimonOfficeUZ.Setup.msi` build is not sufficient by itself. The final WiX Setup project must demonstrably package both `TarjimonOfficeUZ.Word` and `TarjimonOfficeUZ.Excel` outputs and the resulting single installer must install both add-ins.
-
-If Setup currently packages only Shared/dependency output, treat that as a blocker rather than a successful 1.0 installer.
+A successful legacy `TarjimonOfficeUZ.Setup.msi` build is not sufficient by itself. The final WiX Setup project must package both `TarjimonOfficeUZ.Word` and `TarjimonOfficeUZ.Excel` outputs and the resulting user-facing setup must install both add-ins.
 
 ## 11. Local tool prerequisite
 
@@ -126,8 +127,7 @@ Important permanent findings from that audit:
 
 - `TarjimonOfficeUZ.Word3.csproj` was a temporary mistake, was deleted, and must not be recreated.
 - The full uploaded working tree was inspected; the apparent 35-file local change set was line-ending-only and must not be committed as code changes.
-- The final 1.0 product remains **Word + Excel + ONE MSI**.
-- The WiX project is source-correct in principle but is not yet release-complete until it builds and installs both add-ins in a real test.
+- The final 1.0 product remains **Word + Excel + ONE user-facing installer**.
 - Excel UndoBridge must be included and made operational by the single installer; manual post-install steps are not the 1.0 target.
 - WiX 32-bit registry components must use an architecture-safe directory arrangement.
 - Installer registration currently uses HKLM while the Shared startup-settings service writes HKCU; this must be deliberately reconciled and tested.
@@ -156,17 +156,16 @@ The final 1.0 installer must perform an **explicit pre-install scan before chang
 
 The intended user experience is:
 
-1. MSI starts and scans the machine for existing Office add-ins that are relevant to the product, especially Word/Excel translator or ribbon add-ins.
-2. The installer presents a clear list of detected candidates with at least product name, publisher/vendor when available, version when available, host (Word/Excel), and installation/registration location when available.
-3. The list must distinguish:
-   - our own previous/older `Tarjimon Office UZ` installations;
-   - other vendors' Office translator/add-in registrations that may conflict with the new product.
-4. The installer must **ask for explicit user consent before removing any detected existing product**. It must never silently uninstall a third-party Office add-in.
-5. The user must be able to choose to keep a detected item. Keeping it must not be treated as an installation failure.
-6. For our own older versions, the installer should offer removal/upgrade as part of the same installation flow and then install the new version.
-7. For a third-party candidate, removal must occur only after explicit consent and only through a supported/uninstallable mechanism; the installer must not delete arbitrary files or registry keys merely because a ribbon entry exists.
-8. After the user's choices are applied, the installer installs the new combined Word + Excel add-in package.
-9. The installer must then verify its own registration/files and report the result.
+1. User starts `TarjimonOfficeUZSetup.exe`.
+2. Preflight scans the machine for existing Office add-ins that are relevant to the product, especially Word/Excel translator or ribbon add-ins.
+3. The installer presents a clear list of detected candidates with at least product name, publisher/vendor when available, version when available, host (Word/Excel), and registration location when available.
+4. The list distinguishes our own previous/older `Tarjimon Office UZ` installations from other vendors' relevant translator/add-in registrations.
+5. The user gives explicit consent before any detected product is removed.
+6. The user can keep any detected item; keeping it is not treated as permission to delete it.
+7. For our own older versions, the installer offers removal/upgrade and then installs the new combined version.
+8. For third-party candidates, removal happens only after explicit consent and only through a supported uninstall mechanism.
+9. The installer never deletes arbitrary files or registry keys merely because a ribbon entry exists.
+10. After the approved migration operations finish, the embedded combined MSI installs Word + Excel.
 
 ### Important safety rule for add-in detection
 
@@ -174,21 +173,18 @@ Do **not** implement this as “delete every ribbon add-in”. Office has many l
 
 ### Required migration test matrix
 
-At minimum test these scenarios:
-
-- No previous Tarjimon installation → install one MSI → Word + Excel work.
-- Previous Tarjimon Office UZ version exists → installer detects it → user approves removal/upgrade → new version works in Word + Excel.
-- Previous Tarjimon Office UZ version exists → user chooses keep → installer follows the defined safe behavior and does not silently delete it.
-- A third-party translator Office add-in exists → installer detects it as a candidate → user explicitly approves or rejects removal → only the selected item is affected.
-- Multiple candidates exist → installer displays all candidates clearly and applies only the user's selections.
-- No relevant candidate exists → installer proceeds without unnecessary prompts.
-- Uninstall/reinstall → old registration is removed cleanly and the new combined installer can reinstall Word + Excel.
-
-This preflight/migration flow is a **planned 1.0 requirement**, not a claim that the current MSI already implements it. It must be implemented and tested before the 1.0 release is declared frozen.
+- No previous Tarjimon installation → launch one setup → no unnecessary prompt → Word + Excel work.
+- Previous Tarjimon Office UZ version exists → detected → user approves removal/upgrade → new version works in Word + Excel.
+- Previous Tarjimon Office UZ version exists → user keeps it/cancels → it is not silently removed; final behavior is documented and tested.
+- A third-party translator Office add-in exists → detected as a candidate → user explicitly approves or rejects removal → only the selected item is affected.
+- Multiple candidates exist → all candidates are displayed clearly and only selected items are processed.
+- No relevant candidate exists → setup proceeds without unnecessary prompts.
+- Candidate has no supported uninstall command → setup warns and does not forcibly delete files/registry.
+- Uninstall/reinstall → old registration is removed cleanly and the same single user-facing setup can reinstall Word + Excel.
 
 ## 15. Verified work history / continuation memory — 2026-08-19
 
-The following results were achieved during the current installer work and must be preserved as project memory:
+The following results were achieved during the installer work and must be preserved as project memory:
 
 - GitHub Desktop is installed and is the normal local Git workflow for this project.
 - The active release branch is `release/1.0-installer-cleanup` unless explicitly changed.
@@ -200,24 +196,20 @@ The following results were achieved during the current installer work and must b
 - The WiX build initially exposed the Open Source Maintenance Fee (OSMF) EULA acceptance requirement; the required local EULA acceptance was performed.
 - The next build exposed missing `Microsoft.VisualStudio.Tools.Office.targets`; the Visual Studio Office/VSTO tooling was checked/installed, after which the previous MSB4019 blocker was cleared.
 - A combined WiX MSI was successfully produced at the x64 Debug output: `TarjimonOfficeUZ.Setup.Wix/bin/x64/Debug/TarjimonOfficeUZSetup.msi`.
-- The produced MSI was launched and Windows showed `Tarjimon Office UZ` and `TarjimonOfficeUZ.Setup` entries in installed programs. However, this does **not yet prove** that the newly produced MSI was the only source of the active Word/Excel add-in, because an older installation was already present.
+- The produced MSI was launched and Windows showed `Tarjimon Office UZ` and `TarjimonOfficeUZ.Setup` entries in installed programs. However, this did **not** prove that the newly produced MSI was the only source of the active Word/Excel add-in, because an older installation was already present.
 - Word and Excel currently show the `KL Office uz` ribbon/add-in. This existed before the current clean-install test, so its presence alone is not accepted as proof that the new MSI installed and activated the new add-ins.
-- Therefore the next release test must be a controlled uninstall/clean migration test followed by installation from the newly produced single MSI.
-- The installer currently must not be declared 100% complete merely because the MSI builds or because an installed-program entry appears.
+- Therefore the next release test must be a controlled uninstall/clean migration test followed by installation from the newly produced single user-facing setup.
+- The installer must not be declared 100% complete merely because the MSI builds or because an installed-program entry appears.
 
-### Required test evidence before release freeze
+## 16. Preflight launcher implementation — 2026-08-19
 
-Record PASS/FAIL evidence for:
+The preflight migration design is now implemented in source form:
 
-1. Combined MSI contains Word output.
-2. Combined MSI contains Excel output.
-3. Clean installation activates Word add-in.
-4. Clean installation activates Excel add-in.
-5. Existing Tarjimon version is detected and user is asked before removal.
-6. Third-party translator candidates are detected conservatively and user consent is required before removal.
-7. UndoBridge is installed automatically and works.
-8. Word/Excel registration works for the intended Office bitness.
-9. Uninstall removes the product cleanly.
-10. Reinstall from the same single MSI works.
+- `TarjimonOfficeUZ.Setup.Preflight` targets .NET Framework 4.8 and uses WinForms for the consent UI.
+- It scans Word/Excel add-in registrations under HKLM/HKCU and both 64-bit/32-bit registry views.
+- It uses conservative translator-related detection keywords.
+- It correlates candidates with Windows uninstall registration and executes only a supported uninstall command after explicit user selection.
+- It extracts the embedded combined MSI to a temporary file and starts Windows Installer only after the migration review completes.
+- `TarjimonOfficeUZ.Setup.Wix.wixproj` now builds the combined MSI first and then invokes the preflight project with the generated MSI path so the MSI can be embedded in the final `TarjimonOfficeUZSetup.exe` launcher.
 
-Until these are PASS, do not call the 1.0 installer “100% complete/frozen”.
+This implementation is **not yet release-proven**. It must be built and tested locally before being considered complete. In particular, verify the generated EXE, embedded MSI, detection accuracy, uninstall behavior, and Word/Excel installation results before release freeze.
