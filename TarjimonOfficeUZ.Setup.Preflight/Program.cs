@@ -187,22 +187,41 @@ namespace TarjimonOfficeUZ.Setup.Preflight
         {
             string fileName;
             string arguments;
-            if (commandLine.TrimStart().StartsWith("msiexec", StringComparison.OrdinalIgnoreCase))
+            var trimmed = commandLine.TrimStart();
+
+            if (trimmed.StartsWith("msiexec", StringComparison.OrdinalIgnoreCase) ||
+                trimmed.StartsWith("msiexec.exe", StringComparison.OrdinalIgnoreCase))
             {
                 fileName = "msiexec.exe";
-                arguments = Regex.Replace(commandLine, @"(?i)(^|\s)/i(\s|$)", " /x ");
+                arguments = trimmed.Substring(trimmed.IndexOf(' ') >= 0 ? trimmed.IndexOf(' ') + 1 : trimmed.Length).Trim();
+
+                // Windows uninstall registrations commonly use either /I{PRODUCT-CODE}
+                // or /I {PRODUCT-CODE}. Both mean maintenance/install mode. For an
+                // uninstall request we must reliably convert the operation to /X.
+                arguments = Regex.Replace(
+                    arguments,
+                    @"(?i)(^|\s)/(i|x)(?=\s*\{)",
+                    "$1/X");
+
+                if (!Regex.IsMatch(arguments, @"(?i)(^|\s)/x(?=\s*\{)"))
+                {
+                    // Do not launch msiexec with an ambiguous command line.
+                    // If the registered string has no product-code uninstall target,
+                    // report it as unsupported instead of showing the MSI help dialog.
+                    return false;
+                }
             }
-            else if (commandLine.TrimStart().StartsWith("\""))
+            else if (trimmed.StartsWith("\""))
             {
-                var end = commandLine.IndexOf('"', 1);
-                fileName = end > 0 ? commandLine.Substring(1, end - 1) : commandLine.Trim('"');
-                arguments = end > 0 ? commandLine.Substring(end + 1).Trim() : string.Empty;
+                var end = trimmed.IndexOf('"', 1);
+                fileName = end > 0 ? trimmed.Substring(1, end - 1) : trimmed.Trim('"');
+                arguments = end > 0 ? trimmed.Substring(end + 1).Trim() : string.Empty;
             }
             else
             {
-                var split = commandLine.IndexOf(' ');
-                fileName = split > 0 ? commandLine.Substring(0, split) : commandLine;
-                arguments = split > 0 ? commandLine.Substring(split + 1) : string.Empty;
+                var split = trimmed.IndexOf(' ');
+                fileName = split > 0 ? trimmed.Substring(0, split) : trimmed;
+                arguments = split > 0 ? trimmed.Substring(split + 1) : string.Empty;
             }
 
             using (var p = Process.Start(new ProcessStartInfo
@@ -213,6 +232,7 @@ namespace TarjimonOfficeUZ.Setup.Preflight
                 Verb = "runas"
             }))
             {
+                if (p == null) return false;
                 p.WaitForExit();
                 return p.ExitCode == 0 || p.ExitCode == 3010 || p.ExitCode == 1641;
             }
@@ -258,8 +278,6 @@ namespace TarjimonOfficeUZ.Setup.Preflight
                 TextAlign = ContentAlignment.MiddleLeft
             };
 
-            // Keep the list below the title explicitly. The top offset is approximately one full item height,
-            // leaving clean space above the first data row and preventing the first row from being clipped.
             list.View = View.Details;
             list.CheckBoxes = true;
             list.FullRowSelect = true;
@@ -324,8 +342,6 @@ namespace TarjimonOfficeUZ.Setup.Preflight
             panel.Controls.Add(cancel);
             panel.Controls.Add(confirm);
 
-            // Explicit layout avoids WinForms Dock z-order overlap. The list starts after the title
-            // with one row-height of clean top space, while the remaining design stays unchanged.
             list.Location = new Point(16, 100);
             list.Size = new Size(712, 200);
             list.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
