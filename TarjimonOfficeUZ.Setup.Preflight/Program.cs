@@ -33,7 +33,9 @@ namespace TarjimonOfficeUZ.Setup.Preflight
         private static readonly string[] TranslatorWords =
         {
             "tarjimon", "translator", "translation", "translate", "language",
-            "lingua", "перевод", "переводчик", "kl office", "office uz"
+            "lingua", "перевод", "переводчик", "kl office", "kloffice", "office uz",
+            "print_kito", "print kito", "kiril", "kyril", "lotin", "latin",
+            "o'zbek", "uzbek", "узбек"
         };
 
         [STAThread]
@@ -57,7 +59,7 @@ namespace TarjimonOfficeUZ.Setup.Preflight
                             if (string.IsNullOrWhiteSpace(item.UninstallString))
                             {
                                 MessageBox.Show(
-                                    $"'{item.Product}' uchun qo'llab-quvvatlanadigan uninstall buyrug'i topilmadi. U o'chirilmaydi.",
+                                    $"'{item.Product}' uchun qo'llab-quvvatlanadigan o'chirish buyrug'i topilmadi. U o'chirilmaydi.",
                                     "Tarjimon Office UZ", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                                 continue;
                             }
@@ -87,8 +89,7 @@ namespace TarjimonOfficeUZ.Setup.Preflight
 
         private static List<AddinCandidate> ScanCandidates()
         {
-            var result = new List<AddinCandidate>();
-            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var discovered = new List<AddinCandidate>();
             var views = Environment.Is64BitOperatingSystem
                 ? new[] { RegistryView.Registry64, RegistryView.Registry32 }
                 : new[] { RegistryView.Default };
@@ -103,24 +104,30 @@ namespace TarjimonOfficeUZ.Setup.Preflight
                         using (var addins = root.OpenSubKey($"SOFTWARE\\Microsoft\\Office\\{host}\\Addins"))
                         {
                             if (addins == null) continue;
+
                             foreach (var keyName in addins.GetSubKeyNames())
                             {
                                 using (var key = addins.OpenSubKey(keyName))
                                 {
                                     if (key == null) continue;
+
                                     var friendly = Convert.ToString(key.GetValue("FriendlyName")) ?? keyName;
                                     var description = Convert.ToString(key.GetValue("Description")) ?? string.Empty;
                                     var manifest = Convert.ToString(key.GetValue("Manifest")) ?? string.Empty;
-                                    var text = (keyName + " " + friendly + " " + description + " " + manifest).ToLowerInvariant();
+                                    var progId = Convert.ToString(key.GetValue("ProgId")) ?? string.Empty;
+                                    var assembly = Convert.ToString(key.GetValue("Assembly")) ?? string.Empty;
+                                    var text = NormalizeSearchText(keyName, friendly, description, manifest, progId, assembly);
+
+                                    // We intentionally do not show every Office add-in.
+                                    // Only translator/language-related add-ins are candidates.
+                                    // Third-party candidates are shown but remain unchecked.
                                     if (!TranslatorWords.Any(text.Contains)) continue;
 
                                     var uninstall = FindUninstall(friendly, keyName, out var publisher, out var version);
-                                    var own = text.Contains("tarjimon office uz") || text.Contains("tarjimonofficeuz");
+                                    var own = IsOwnProduct(text, publisher);
                                     var registration = $"{hive}\\{view}\\SOFTWARE\\Microsoft\\Office\\{host}\\Addins\\{keyName}";
-                                    var signature = registration + "|" + friendly;
-                                    if (!seen.Add(signature)) continue;
 
-                                    result.Add(new AddinCandidate
+                                    discovered.Add(new AddinCandidate
                                     {
                                         Product = friendly,
                                         Publisher = publisher,
@@ -137,7 +144,69 @@ namespace TarjimonOfficeUZ.Setup.Preflight
                 }
             }
 
-            return result.OrderByDescending(x => x.IsOwnProduct).ThenBy(x => x.Product).ToList();
+            // One installed product can register itself for both Word and Excel,
+            // and can also appear in both 32-bit and 64-bit registry views.
+            // Show it once and combine its Office hosts instead of displaying duplicates.
+            return discovered
+                .GroupBy(BuildProductIdentity, StringComparer.OrdinalIgnoreCase)
+                .Select(group =>
+                {
+                    var first = group.First();
+                    first.Host = string.Join(", ", group.Select(x => x.Host).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(x => x));
+                    first.IsOwnProduct = group.Any(x => x.IsOwnProduct);
+                    if (string.IsNullOrWhiteSpace(first.UninstallString))
+                        first.UninstallString = group.Select(x => x.UninstallString).FirstOrDefault(x => !string.IsNullOrWhiteSpace(x));
+                    if (string.IsNullOrWhiteSpace(first.Publisher))
+                        first.Publisher = group.Select(x => x.Publisher).FirstOrDefault(x => !string.IsNullOrWhiteSpace(x));
+                    if (string.IsNullOrWhiteSpace(first.Version))
+                        first.Version = group.Select(x => x.Version).FirstOrDefault(x => !string.IsNullOrWhiteSpace(x));
+                    return first;
+                })
+                .OrderByDescending(x => x.IsOwnProduct)
+                .ThenBy(x => x.Product)
+                .ToList();
+        }
+
+        private static string NormalizeSearchText(params string[] values)
+        {
+            return string.Join(" ", values.Where(x => !string.IsNullOrWhiteSpace(x)))
+                .ToLowerInvariant()
+                .Replace("-", " ")
+                .Replace("_", " ");
+        }
+
+        private static bool IsOwnProduct(string text, string publisher)
+        {
+            var publisherText = (publisher ?? string.Empty).ToLowerInvariant();
+            return text.Contains("tarjimon office uz") ||
+                   text.Contains("tarjimonofficeuz") ||
+                   publisherText.Contains("tarjimon office uz") ||
+                   publisherText.Contains("tarjimonofficeuz");
+        }
+
+        private static string BuildProductIdentity(AddinCandidate item)
+        {
+            // Prefer the MSI product code when available. This is the safest way
+            // to collapse duplicate registry registrations of the same product.
+            var productCode = ExtractProductCode(item.UninstallString);
+            if (!string.IsNullOrWhiteSpace(productCode))
+                return "MSI:" + productCode;
+
+            return "APP:" + NormalizeIdentity(item.Product) + "|" +
+                   NormalizeIdentity(item.Publisher) + "|" +
+                   NormalizeIdentity(item.Version);
+        }
+
+        private static string ExtractProductCode(string commandLine)
+        {
+            if (string.IsNullOrWhiteSpace(commandLine)) return string.Empty;
+            var match = Regex.Match(commandLine, @"\{[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}\}");
+            return match.Success ? match.Value.ToUpperInvariant() : string.Empty;
+        }
+
+        private static string NormalizeIdentity(string value)
+        {
+            return Regex.Replace((value ?? string.Empty).Trim().ToLowerInvariant(), @"\s+", " ");
         }
 
         private static string FindUninstall(string friendly, string keyName, out string publisher, out string version)
@@ -165,10 +234,10 @@ namespace TarjimonOfficeUZ.Setup.Preflight
                                 var uninstall = Convert.ToString(key.GetValue("UninstallString")) ?? string.Empty;
                                 var pub = Convert.ToString(key.GetValue("Publisher")) ?? string.Empty;
                                 var ver = Convert.ToString(key.GetValue("DisplayVersion")) ?? string.Empty;
-                                var candidateText = (display + " " + pub + " " + name).ToLowerInvariant();
+                                var candidateText = NormalizeSearchText(display, pub, name);
                                 if (!string.IsNullOrWhiteSpace(uninstall) &&
-                                    (candidateText.Contains(friendly.ToLowerInvariant()) ||
-                                     candidateText.Contains(keyName.ToLowerInvariant()) ||
+                                    (candidateText.Contains((friendly ?? string.Empty).ToLowerInvariant()) ||
+                                     candidateText.Contains((keyName ?? string.Empty).ToLowerInvariant()) ||
                                      TranslatorWords.Any(candidateText.Contains)))
                                 {
                                     publisher = pub;
@@ -194,22 +263,10 @@ namespace TarjimonOfficeUZ.Setup.Preflight
             {
                 fileName = "msiexec.exe";
                 arguments = trimmed.Substring(trimmed.IndexOf(' ') >= 0 ? trimmed.IndexOf(' ') + 1 : trimmed.Length).Trim();
-
-                // Windows uninstall registrations commonly use either /I{PRODUCT-CODE}
-                // or /I {PRODUCT-CODE}. Both mean maintenance/install mode. For an
-                // uninstall request we must reliably convert the operation to /X.
-                arguments = Regex.Replace(
-                    arguments,
-                    @"(?i)(^|\s)/(i|x)(?=\s*\{)",
-                    "$1/X");
+                arguments = Regex.Replace(arguments, @"(?i)(^|\s)/(i|x)(?=\s*\{)", "$1/X");
 
                 if (!Regex.IsMatch(arguments, @"(?i)(^|\s)/x(?=\s*\{)"))
-                {
-                    // Do not launch msiexec with an ambiguous command line.
-                    // If the registered string has no product-code uninstall target,
-                    // report it as unsupported instead of showing the MSI help dialog.
                     return false;
-                }
             }
             else if (trimmed.StartsWith("\""))
             {
@@ -285,18 +342,23 @@ namespace TarjimonOfficeUZ.Setup.Preflight
             list.MultiSelect = true;
             list.HideSelection = false;
             list.HeaderStyle = ColumnHeaderStyle.Nonclickable;
-            list.Columns.Add("Qo'shimcha nomi", 245);
-            list.Columns.Add("Mahsulot nomi", 170);
+            list.Columns.Add("Qo'shimcha nomi", 235);
+            list.Columns.Add("Mahsulot / ishlab chiqaruvchi", 245);
             list.Columns.Add("Versiya", 75);
             list.Columns.Add("Dastur", 100);
 
             foreach (var item in candidates)
             {
                 var row = new ListViewItem(item.Product);
-                row.SubItems.Add("Tarjimon Office UZ");
+                var productInfo = string.IsNullOrWhiteSpace(item.Publisher)
+                    ? "Ishlab chiqaruvchi noma'lum"
+                    : item.Publisher;
+                row.SubItems.Add(productInfo);
                 row.SubItems.Add(string.IsNullOrWhiteSpace(item.Version) ? "—" : item.Version);
                 row.SubItems.Add(item.Host);
                 row.Tag = item;
+                // Our own product is selected by default. Third-party candidates are
+                // deliberately left unchecked so they can never be removed accidentally.
                 row.Checked = item.IsOwnProduct;
                 list.Items.Add(row);
             }
@@ -305,7 +367,7 @@ namespace TarjimonOfficeUZ.Setup.Preflight
             {
                 Dock = DockStyle.Bottom,
                 Height = 58,
-                Text = "Faqat ro'yxatda ko'rsatilgan va qo'llab-quvvatlanadigan uninstall mexanizmi mavjud mahsulotlar olib tashlanadi.\r\nUchinchi tomon add-inlari roziliksiz o'chirilmaydi.",
+                Text = "Faqat ro'yxatda ko'rsatilgan va qo'llab-quvvatlanadigan o'chirish mexanizmi mavjud mahsulotlar olib tashlanadi.\r\nUchinchi tomon add-inlari aniqlansa, ular belgilanmaydi — foydalanuvchi o'zi tanlaydi.",
                 Padding = new Padding(16, 7, 16, 4),
                 ForeColor = Color.DarkSlateGray,
                 TextAlign = ContentAlignment.MiddleLeft
