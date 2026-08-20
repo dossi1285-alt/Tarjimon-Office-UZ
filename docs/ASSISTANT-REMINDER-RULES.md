@@ -74,7 +74,38 @@ For installer work, this must remain consistent with `PROJECT_RULES.md`:
 - no silent third-party add-in removal;
 - real Word/Excel tests before release freeze.
 
-### 6. Current immediate continuation
+### 6. GitHub workflow — mandatory user notification and step tracking
+
+GitHub is part of the project's working procedure, not merely a backup.
+
+Whenever the assistant creates or updates project files directly on GitHub, the assistant must record that change in the reminder notes and explicitly tell the user that a GitHub change was made.
+
+The reminder must identify the required synchronization action for the user's local machine:
+
+1. **Fetch origin** — refresh remote information in GitHub Desktop; use this when checking whether new remote commits exist.
+2. **Pull origin** — download/apply the remote commits to the local repository after the assistant has made a remote change.
+3. **Build/Test locally** — after Pull, rebuild the affected project(s) and run the relevant test before treating the remote change as locally verified.
+4. **Commit** — when the user has made local changes that should be recorded.
+5. **Push origin** — upload the user's local commit(s) to GitHub after committing.
+
+For assistant-made GitHub changes, the default user-side sequence is:
+
+**Fetch origin → Pull origin → Build → Test.**
+
+If the user makes a local change after Pull, the continuation becomes:
+
+**Commit → Push origin → Fetch/Pull as needed → Build → Test.**
+
+The assistant must not tell the user to Push an assistant-made remote commit merely to receive it locally; the correct action is normally **Pull origin**.
+
+Whenever a GitHub change is made, the user notification must include:
+
+- what file/project was changed;
+- the commit SHA when available;
+- what the user needs to do next (`Fetch origin`, `Pull origin`, `Build`, `Test`, or `Commit/Push` as applicable);
+- what result will confirm that synchronization/build/test succeeded.
+
+### 7. Current immediate continuation
 
 As of 2026-08-20, the Preflight detection/UI work has produced a successful partial result: duplicate handling and the own-product detection flow were improved and the user confirmed the updated dialog is working better. However, the user's Word screenshot still shows `KL Office uz`, which has not yet been confirmed as detected by the current scanner.
 
@@ -85,7 +116,7 @@ Next required action:
 3. Test the detection list visually before pressing `Tasdiqlash` for destructive migration.
 4. Only after detection passes, continue with controlled uninstall/reinstall and Word + Excel verification.
 
-### 7. GitHub as canonical project memory
+### 8. GitHub as canonical project memory
 
 This file is part of the project's continuation memory. GitHub repository `dossi1285-alt/Tarjimon-Office-UZ`, active branch `release/1.0-installer-cleanup`, remains the canonical project source/history according to `PROJECT_RULES.md`.
 
