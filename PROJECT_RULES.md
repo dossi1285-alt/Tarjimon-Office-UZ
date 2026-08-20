@@ -213,3 +213,52 @@ The preflight migration design is now implemented in source form:
 - `TarjimonOfficeUZ.Setup.Wix.wixproj` now builds the combined MSI first and then invokes the preflight project with the generated MSI path so the MSI can be embedded in the final `TarjimonOfficeUZSetup.exe` launcher.
 
 This implementation is **not yet release-proven**. It must be built and tested locally before being considered complete. In particular, verify the generated EXE, embedded MSI, detection accuracy, uninstall behavior, and Word/Excel installation results before release freeze.
+
+## 17. Important architecture clarification — ONE user-facing installer, TWO build projects
+
+The project intentionally has **two installer-related build projects with different responsibilities**. This is not two installers for the user.
+
+### `TarjimonOfficeUZ.Setup.Preflight`
+
+- Contains the source code and UI logic for the user-facing `TarjimonOfficeUZSetup.exe` launcher.
+- Performs the pre-install scan and explicit consent/migration review.
+- Detects relevant existing Word/Excel translator/add-in registrations.
+- After approved migration operations, launches the embedded combined MSI.
+- This project is a **launcher/preflight implementation project**, not a second independent installer product.
+
+### `TarjimonOfficeUZ.Setup.Wix`
+
+- Is the WiX 7 build project for the combined MSI payload.
+- Builds the Word + Excel MSI.
+- Then supplies that generated MSI to the Preflight project so the MSI is embedded into the final `TarjimonOfficeUZSetup.exe`.
+- It is the **installer build/orchestration project**, not a separate user-facing installer choice.
+
+### Final user-facing architecture
+
+The user must receive/use **ONE setup entry point**:
+
+`TarjimonOfficeUZSetup.exe`
+
+The intended chain is:
+
+`TarjimonOfficeUZ.Setup.Wix` build orchestration
+→ generate combined `TarjimonOfficeUZSetup.msi`
+→ pass/embed MSI into `TarjimonOfficeUZ.Setup.Preflight`
+→ produce final `TarjimonOfficeUZSetup.exe`
+→ user launches ONE EXE
+→ Preflight review/consent
+→ approved migration
+→ embedded MSI
+→ Word + Excel installed together.
+
+The existence of both projects must **not** be interpreted as permission to distribute two independent installers.
+
+### Legacy Setup project
+
+`TarjimonOfficeUZ.Setup` is the old Visual Studio Installer `.vdproj` project. It is retained temporarily during migration and must not become the primary 1.0 distribution path. Once the WiX + Preflight flow is fully proven through real installation, migration, reinstall, uninstall, Word, and Excel tests, the legacy project may be removed as a separate deliberate cleanup step.
+
+### Build/output rule
+
+Do not delete or bypass `TarjimonOfficeUZ.Setup.Wix` merely because `TarjimonOfficeUZ.Setup.Preflight` exists. Do not delete or bypass Preflight merely because WiX builds an MSI. The two projects form one final installer pipeline and have different technical responsibilities.
+
+The final 1.0 acceptance criterion remains **ONE user-facing setup, containing both Word and Excel, with Preflight migration/consent before MSI installation**.
