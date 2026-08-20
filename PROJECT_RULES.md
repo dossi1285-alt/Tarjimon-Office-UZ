@@ -262,3 +262,34 @@ The existence of both projects must **not** be interpreted as permission to dist
 Do not delete or bypass `TarjimonOfficeUZ.Setup.Wix` merely because `TarjimonOfficeUZ.Setup.Preflight` exists. Do not delete or bypass Preflight merely because WiX builds an MSI. The two projects form one final installer pipeline and have different technical responsibilities.
 
 The final 1.0 acceptance criterion remains **ONE user-facing setup, containing both Word and Excel, with Preflight migration/consent before MSI installation**.
+
+## 18. Latest verified preflight changes and test baseline — 2026-08-20
+
+The following work was completed and synchronized to GitHub before starting the next test cycle:
+
+- The Preflight UI was corrected so the first list row is fully visible and has clean empty space above it; the compact window layout is retained.
+- The old three-button flow was reduced to exactly two buttons: `Tasdiqlash` and `Bekor qilish`.
+- `Tasdiqlash` means the user accepts the selected removals and continues with installation.
+- `Bekor qilish` cancels the setup without performing the selected removals.
+- The Windows Installer uninstall bug was fixed: registered MSI uninstall commands using `/I{GUID}` or `/I {GUID}` are converted to `/X{GUID}`/`/X {GUID}` before execution, preventing the Windows Installer help dialog that appeared during the earlier test.
+- The previous test reached the genuine Windows confirmation dialog `Вы действительно хотите удалить этот продукт?`; this confirmed that the `/X` conversion was functioning. The user correctly chose not to continue deleting at that point because duplicate detection still needed correction.
+- Duplicate detection is now being addressed so the same product discovered through multiple Office hosts and/or registry views is not displayed as a confusing list of repeated identical rows.
+- The detection scope was expanded to recognize relevant third-party translator/Office add-ins, not only `Tarjimon Office UZ` entries. Detection remains conservative and must not become “remove every ribbon add-in”.
+- Third-party candidates must be shown to the user and must remain unselected by default; they may only be removed after explicit user selection and consent, and only through a supported uninstall mechanism.
+- The user observed `KL Office uz` in Word. This is an important real-world third-party add-in test case and must be considered in the detection logic and migration test matrix.
+- The latest source change for duplicate/third-party detection was committed as `dd8ca36ddc65bfa2399972864675e3738eb6d5e4` with message `docs: record preflight detection and test baseline` for the documentation update; the corresponding Preflight source change is already on the same active release branch and must be pulled before local testing.
+- The user has now pulled the latest changes and rebuilt both `TarjimonOfficeUZ.Setup.Preflight` and `TarjimonOfficeUZ.Setup.Wix` successfully. The next action is testing, not another architectural change.
+
+### Immediate test objective
+
+Start the newly built `TarjimonOfficeUZSetup.exe` and verify only these points first:
+
+1. The list contains no duplicate representation of the same installed product.
+2. The known `KL Office uz` third-party add-in is detected if its registration matches the conservative translator/add-in criteria.
+3. Our own Tarjimon Office UZ entries are distinguishable from third-party entries.
+4. Our own previous version is selected by default only when it is genuinely identified as our product.
+5. Third-party entries are **not** selected by default.
+6. `Bekor qilish` performs no uninstall.
+7. Do not click `Tasdiqlash` for the destructive migration test until the detection list has been visually verified.
+
+Only after this detection test passes should we proceed to controlled removal/reinstallation, followed by Word and Excel real-world ribbon/functionality tests.
