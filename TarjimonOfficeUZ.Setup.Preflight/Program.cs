@@ -525,7 +525,7 @@ namespace TarjimonOfficeUZ.Setup.Preflight
             var description = new Label
             {
                 Dock = DockStyle.Fill,
-                Text = "Kompyuteringizda Office bilan bog'liq yoki funksional tarjimon/konvertorlar aniqlandi. Belgilanmaganlari saqlanadi.",
+                Text = "",
                 Font = new Font("Segoe UI", 9.5F),
                 ForeColor = Color.FromArgb(75, 75, 75),
                 TextAlign = ContentAlignment.MiddleLeft
@@ -566,7 +566,7 @@ namespace TarjimonOfficeUZ.Setup.Preflight
             var productHint = new Label
             {
                 Dock = DockStyle.Fill,
-                Text = "Mahsulot himoyalangan — o'rnatish uchun belgilangan.",
+                Text = "",
                 Font = new Font("Segoe UI", 8.8F),
                 ForeColor = Color.FromArgb(80, 90, 105),
                 TextAlign = ContentAlignment.MiddleLeft
