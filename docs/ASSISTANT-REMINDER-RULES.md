@@ -57,37 +57,52 @@ The assistant must not tell the user to Push an assistant-made remote commit mer
 
 Every GitHub-change notification must state the changed file/project, commit SHA when available, the user's next action, and the result that will confirm success.
 
-### 8. Current immediate continuation
+### 8. Previous detection test result
 
-The previous detection test was NOT successful: the user's Word screenshot showed `KL Office uz`, while the Preflight list did not show it. The own-product row was detected, but extra `TarjimonOfficeUZ.Excel` and `TarjimonOfficeUZ.Word` rows also appeared with unknown publisher.
+The previous detection test was NOT fully successful: the user's Word screenshot showed `KL Office uz`, while the Preflight list did not show it. The own-product row was detected, but extra `TarjimonOfficeUZ.Excel` and `TarjimonOfficeUZ.Word` rows also appeared with unknown publisher.
 
-### 9. Latest implementation status — KL Office detection
+### 9. Latest implementation — resizable window and duplicate grouping
 
-Source implementation completed on GitHub, but NOT YET VERIFIED by a local build/test.
+The user then confirmed two additional requirements:
 
-Commit: `b92a44c0dda7574f156b7ac9bce0321dc1cb8ef2`.
+- Keep the current standard window size, but allow the user to enlarge the window so a long detection list can be viewed without unnecessary scrolling.
+- If several detected entries belong to the same product, combine them into one row and show the detected Office hosts together, so the user is not confused by repeated entries.
 
-Changes in `TarjimonOfficeUZ.Setup.Preflight/Program.cs`:
+Implementation completed on GitHub in:
 
-- expanded translator/add-in keyword detection, including `KL Office`, `KLOffice`, `KL_Office`, `Kirill`, and related terms;
-- expanded Word/Excel startup-path discovery across Office-version registry paths;
-- added common Office16 startup locations under Program Files/Program Files (x86);
-- expanded startup-file metadata inspection;
-- added CLSID/COM registration scanning for translator-related names and server paths;
-- retained duplicate grouping and the rule that third-party add-ins are not selected automatically.
+`TarjimonOfficeUZ.Setup.Preflight/Program.cs`
 
-Because this is only an implementation change, the active condition remains:
+Commit: `7ef007f11fe0c8ca9ae2c627607f1c93faa847da`
 
-1. Pull the new GitHub commit.
-2. Build `TarjimonOfficeUZ.Setup.Preflight`.
-3. Build `TarjimonOfficeUZ.Setup.Wix`.
-4. Launch the combined installer and inspect the detection list.
-5. Confirm whether `KL Office uz` now appears and whether the unwanted duplicate own-product rows are gone.
-6. Do NOT press `Tasdiqlash` until the detection result is accepted.
+Changes:
 
-Only after that real test passes may the `KL Office detection` condition be removed from the active list.
+- default dialog size remains approximately 760×420;
+- the dialog is now resizable and has a minimum size;
+- maximize is available;
+- the detection ListView expands/shrinks with the window;
+- the title, information text, and two action buttons remain positioned correctly while resizing;
+- own-product entries are grouped under one stable identity;
+- non-MSI entries are grouped without using version as part of the identity, reducing duplicate Word/Excel rows for the same product;
+- Word/Excel hosts are combined into the `Dastur` column;
+- third-party add-ins remain unchecked by default.
 
-### 10. GitHub as canonical project memory
+This is **IMPLEMENTED, NOT YET VERIFIED**. The acceptance test still has to confirm both the resize behavior and duplicate grouping in the actual built installer.
+
+### 10. Current active test sequence
+
+1. Fetch origin.
+2. Pull origin.
+3. Build `TarjimonOfficeUZ.Setup.Preflight`.
+4. Build `TarjimonOfficeUZ.Setup.Wix`.
+5. Launch the combined installer.
+6. Confirm the window can be enlarged and the full list becomes visible.
+7. Confirm the same product is shown as one row with combined hosts.
+8. Confirm `KL Office uz` detection remains an active requirement until it is actually found in the list.
+9. Do NOT press `Tasdiqlash` until the detection result is accepted.
+
+Only after the relevant acceptance tests pass may a condition be removed from the active list.
+
+### 11. GitHub as canonical project memory
 
 This file is part of the project's continuation memory. GitHub repository `dossi1285-alt/Tarjimon-Office-UZ`, active branch `release/1.0-installer-cleanup`, remains the canonical project source/history.
 
