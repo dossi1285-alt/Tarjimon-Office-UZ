@@ -3,8 +3,8 @@ setlocal EnableExtensions
 cd /d "%~dp0"
 
 echo ===============================================
-echo Tarjimon Office UZ - MSI + Preflight Build
-echo ===============================================
+echo Tarjimon Office UZ - MSI + Preflight Build 1.1.0
+ echo ===============================================
 echo.
 
 where git >nul 2>&1
@@ -27,13 +27,13 @@ if errorlevel 1 (
   pause
   exit /b 1
 )
-git checkout FETCH_HEAD -- "TarjimonOfficeUZ.Setup.Wix\Package.wxs" "TarjimonOfficeUZ.Setup.Wix\TarjimonOfficeUZ.Setup.Wix.wixproj"
+git checkout FETCH_HEAD -- "TarjimonOfficeUZ.Setup.Wix\Package.wxs"
 if errorlevel 1 (
-  echo XATO: Installer fayllari yangilanmadi.
+  echo XATO: Installer Package.wxs yangilanmadi.
   pause
   exit /b 1
 )
-echo OK - Installer kodi yangilandi.
+echo OK - Installer Package.wxs yangilandi.
 echo.
 
 echo [2/5] Eski build fayllari tozalanmoqda...
@@ -58,7 +58,7 @@ if not exist "%MSBUILD%" (
   exit /b 1
 )
 
-echo [3/5] Mustaqil MSI installer build qilinmoqda...
+echo [3/5] Mustaqil MSI installer build qilinmoqda (1.1.0)...
 "%MSBUILD%" "TarjimonOfficeUZ.Setup.Wix\TarjimonOfficeUZ.Setup.Wix.wixproj" /t:Build /p:Configuration=Debug /m
 set "RC=%ERRORLEVEL%"
 if not "%RC%"=="0" goto BUILD_ERROR
@@ -76,7 +76,7 @@ if errorlevel 1 (
   set "RC=3"
   goto BUILD_ERROR
 )
-echo OK - MSI tayyor.
+echo OK - MSI 1.1.0 tayyor.
 echo.
 
 echo [4/5] Preflight uchun NuGet/SDK restore qilinmoqda...
@@ -86,8 +86,8 @@ if not "%RC%"=="0" goto BUILD_ERROR
 echo OK - Preflight restore tugadi.
 echo.
 
-echo [4/5] Preflight launcher MSI bilan birga build qilinmoqda...
-"%MSBUILD%" "TarjimonOfficeUZ.Setup.Preflight\TarjimonOfficeUZ.Setup.Preflight.csproj" /t:Build /p:Configuration=Debug /p:MsiSource="%MSI%" /m
+echo [4/5] Preflight 1.1.0 launcher MSI bilan birga build qilinmoqda...
+"%MSBUILD%" "TarjimonOfficeUZ.Setup.Preflight\TarjimonOfficeUZ.Setup.Preflight.csproj" /t:Build /p:Configuration=Debug /p:PreflightVersion=1.1.0 /p:MsiSource="%MSI%" /m
 set "RC=%ERRORLEVEL%"
 if not "%RC%"=="0" goto BUILD_ERROR
 
@@ -104,7 +104,7 @@ if errorlevel 1 (
   set "RC=5"
   goto BUILD_ERROR
 )
-echo OK - Yakuniy Setup EXE tayyor va MSI ichiga joylandi.
+echo OK - Yakuniy Setup EXE 1.1.0 tayyor va MSI ichiga joylandi.
 echo.
 
 echo [5/5] Yakuniy fayllar tekshirilmoqda...
@@ -122,9 +122,10 @@ if not exist "%CD%\TarjimonOfficeUZSetup.exe" (
 echo.
 echo ===============================================
 echo BUILD MUVAFFAQIYATLI YAKUNLANDI.
-echo MSI:
+echo 1.1.0 TEST BUILD
+ echo MSI:
 echo D:\Tarjimon-Office-UZ\Tarjimon Office UZ.msi
-echo FINAL SETUP:
+ echo FINAL SETUP:
 echo D:\Tarjimon-Office-UZ\TarjimonOfficeUZSetup.exe
 echo ===============================================
 pause
