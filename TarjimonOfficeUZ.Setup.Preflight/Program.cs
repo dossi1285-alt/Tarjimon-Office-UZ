@@ -23,12 +23,24 @@ namespace TarjimonOfficeUZ.Setup.Preflight
 
     internal static class Program
     {
+        // Detection must use strong product/add-in signals. Generic words such as
+        // "language" or "translation" are intentionally excluded because they
+        // produce Windows/Office system COM false positives.
         private static readonly string[] TranslatorWords =
         {
-            "tarjimon", "translator", "translation", "translate", "language", "lingua",
-            "перевод", "переводчик", "kl office", "kloffice", "kl_office", "office uz",
-            "print kito", "print_kito", "kirill", "kiril", "kyril", "lotin", "latin",
-            "o'zbek", "uzbek", "узбек"
+            "tarjimon", "translator", "переводчик", "kl office", "kloffice", "kl office uz",
+            "kl_office", "office uz", "print kito", "print_kito", "kirill", "kiril", "kyril",
+            "lotin", "latin", "o'zbek", "uzbek", "узбек", "перевод"
+        };
+
+        // Known system/Office component naming patterns must never become a
+        // translator candidate merely because they contain a language-related term.
+        private static readonly string[] SystemFalsePositiveWords =
+        {
+            "microsoft common language runtime", "common language runtime", "language components",
+            "language components installer", "language pack installer host", "language setting conflict",
+            "region and language", "search gatherer language resource", "device language manager",
+            "language bar", "directmusic", "ldap", "jscript", "runtime", "system." 
         };
 
         [STAThread]
@@ -107,7 +119,7 @@ namespace TarjimonOfficeUZ.Setup.Preflight
 
             ScanWordStartup(discovered);
             ScanExcelStartup(discovered);
-            ScanOfficeComRegistrations(discovered, views);
+            ScanOfficeComRegistrations(list: discovered, views: views);
 
             return discovered
                 .GroupBy(BuildProductIdentity, StringComparer.OrdinalIgnoreCase)
@@ -128,7 +140,10 @@ namespace TarjimonOfficeUZ.Setup.Preflight
 
         private static bool IsTranslatorCandidate(string text)
         {
-            return TranslatorWords.Any(text.Contains);
+            var normalized = NormalizeSearchText(text);
+            if (string.IsNullOrWhiteSpace(normalized)) return false;
+            if (SystemFalsePositiveWords.Any(normalized.Contains)) return false;
+            return TranslatorWords.Any(normalized.Contains);
         }
 
         private static void AddCandidate(List<AddinCandidate> list, string product, string host, string registration, string searchText, string keyName)
@@ -255,31 +270,31 @@ namespace TarjimonOfficeUZ.Setup.Preflight
 
         private static void ScanOfficeComRegistrations(List<AddinCandidate> list, RegistryView[] views)
         {
+            // Do not scan every CLSID under Software\\Classes. That registry hive
+            // contains thousands of unrelated Windows/Office COM classes and was
+            // the source of the previous false-positive explosion. Office COM/VSTO
+            // add-ins are already represented by Office\\<Host>\\Addins; this pass
+            // only follows those registered CLSID values and reads their metadata.
             foreach (var view in views)
             foreach (var hive in new[] { RegistryHive.LocalMachine, RegistryHive.CurrentUser })
+            foreach (var host in new[] { "Word", "Excel" })
             using (var root = RegistryKey.OpenBaseKey(hive, view))
-            using (var classes = root.OpenSubKey("Software\\Classes\\CLSID"))
+            using (var addins = root.OpenSubKey("SOFTWARE\\Microsoft\\Office\\" + host + "\\Addins"))
             {
-                if (classes == null) continue;
-                foreach (var clsid in classes.GetSubKeyNames())
+                if (addins == null) continue;
+                foreach (var keyName in addins.GetSubKeyNames())
+                using (var addin = addins.OpenSubKey(keyName))
                 {
-                    try
-                    {
-                        using (var key = classes.OpenSubKey(clsid))
-                        {
-                            if (key == null) continue;
-                            var display = Convert.ToString(key.GetValue(null)) ?? string.Empty;
-                            var progKey = key.OpenSubKey("ProgID");
-                            var progId = Convert.ToString(progKey == null ? null : progKey.GetValue(null)) ?? string.Empty;
-                            if (progKey != null) progKey.Dispose();
-                            var text = NormalizeSearchText(display, progId, clsid);
-                            using (var inproc = key.OpenSubKey("InprocServer32")) text += " " + Convert.ToString(inproc == null ? null : inproc.GetValue(null));
-                            using (var local = key.OpenSubKey("LocalServer32")) text += " " + Convert.ToString(local == null ? null : local.GetValue(null));
-                            if (!IsTranslatorCandidate(NormalizeSearchText(text))) continue;
-                            AddCandidate(list, string.IsNullOrWhiteSpace(display) ? progId : display, "Word/Excel", "CLSID:" + clsid, text, clsid);
-                        }
-                    }
-                    catch { }
+                    if (addin == null) continue;
+                    var progId = Convert.ToString(addin.GetValue("ProgId")) ?? string.Empty;
+                    if (string.IsNullOrWhiteSpace(progId)) continue;
+                    var text = NormalizeSearchText(keyName, progId,
+                        Convert.ToString(addin.GetValue("FriendlyName")),
+                        Convert.ToString(addin.GetValue("Description")));
+                    if (!IsTranslatorCandidate(text)) continue;
+                    AddCandidate(list, Convert.ToString(addin.GetValue("FriendlyName")) ?? keyName,
+                        host, hive + "\\" + view + "\\Office\\" + host + "\\Addins\\" + keyName,
+                        text, keyName);
                 }
             }
         }
