@@ -96,9 +96,11 @@ if ($p.Contains($old3)) { $p = $p.Replace($old3, $new3) }
 [System.IO.File]::WriteAllText($program, $p, (New-Object System.Text.UTF8Encoding($false)))
 
 $w = Get-Content -Raw -LiteralPath $package
-$w2 = $w.Replace('Manufacturer="Tarjimon Office UZ"', 'Manufacturer="Dostonjon Ashurov"')
-if ($w2 -eq $w) { throw 'Package.wxs: Manufacturer field not found.' }
-[System.IO.File]::WriteAllText($package, $w2, (New-Object System.Text.UTF8Encoding($false)))
+if ($w.Contains('Manufacturer="Tarjimon Office UZ"')) {
+    $w = $w.Replace('Manufacturer="Tarjimon Office UZ"', 'Manufacturer="Dostonjon Ashurov"')
+}
+if (-not $w.Contains('Manufacturer="Dostonjon Ashurov"')) { throw 'Package.wxs: Manufacturer field not found.' }
+[System.IO.File]::WriteAllText($package, $w, (New-Object System.Text.UTF8Encoding($false)))
 
 Write-Host 'PATCH OK'
 Write-Host 'Own product display name: Tarjimon Office UZ.'
