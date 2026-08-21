@@ -19,16 +19,13 @@
     <Reference Include="System.Drawing" />
   </ItemGroup>
 
-  <!-- The WiX project passes the freshly built MSI through MsiSource.
-       Add it before CoreCompile so the launcher EXE always contains the MSI
-       resource when it is built by the installer project. -->
-  <Target Name="EmbedBuiltMsi" BeforeTargets="CoreCompile" Condition="'$(MsiSource)' != '' and Exists('$(MsiSource)')">
-    <ItemGroup>
-      <EmbeddedResource Include="$(MsiSource)">
-        <LogicalName>TarjimonOfficeUZSetup.msi</LogicalName>
-        <Type>Non-Resx</Type>
-      </EmbeddedResource>
-    </ItemGroup>
-    <Message Importance="High" Text="Embedding MSI: $(MsiSource)" />
-  </Target>
+  <!-- MsiSource is supplied by FIX_BUILD_AND_BUILD.bat. Define the
+       EmbeddedResource during project evaluation so the C# compiler receives
+       the MSI as a real .NET manifest resource. -->
+  <ItemGroup Condition="'$(MsiSource)' != '' and Exists('$(MsiSource)')">
+    <EmbeddedResource Include="$(MsiSource)">
+      <LogicalName>TarjimonOfficeUZSetup.msi</LogicalName>
+      <Type>Non-Resx</Type>
+    </EmbeddedResource>
+  </ItemGroup>
 </Project>
