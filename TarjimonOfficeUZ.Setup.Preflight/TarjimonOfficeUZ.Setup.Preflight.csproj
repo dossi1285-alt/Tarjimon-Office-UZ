@@ -17,11 +17,15 @@
   <ItemGroup>
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
   </ItemGroup>
 
-  <!-- MsiSource is supplied by FIX_BUILD_AND_BUILD.bat. Define the
-       EmbeddedResource during project evaluation so the C# compiler receives
-       the MSI as a real .NET manifest resource. -->
+  <ItemGroup Condition="'$(PreflightVersion)' == '1.1.0'">
+    <Compile Remove="Program.cs" />
+    <Compile Include="ProgramV110.cs" />
+  </ItemGroup>
+
   <ItemGroup Condition="'$(MsiSource)' != '' and Exists('$(MsiSource)')">
     <EmbeddedResource Include="$(MsiSource)">
       <LogicalName>TarjimonOfficeUZSetup.msi</LogicalName>
