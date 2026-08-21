@@ -157,3 +157,16 @@ After every assistant-made GitHub code change, the response to the user must imm
 6. A statement that the reminder was updated, plus the exact reminder entry that was added/changed.
 
 The assistant must never make the user repeatedly remind it to update the project reminder after a confirmed result or code change.
+
+## 17. KL Office loading-source investigation — 2026-08-21
+
+A read-only diagnostic was added before any further detection redesign:
+
+- File: `docs/DIAGNOSE-KL-OFFICE.ps1`
+- Commit: `d3dba3f1404e5d87741989099782b80e133bbd6c`
+- Status: **IMPLEMENTED / NOT YET TESTED**.
+- Purpose: determine the actual Word/Excel loading source of `KL Office uz` without uninstalling, disabling, deleting, or modifying anything.
+- It inspects Word `COMAddIns`, Word `AddIns`, templates, startup path, legacy CommandBars captions, Office Addins registry metadata, Excel COMAddIns/AddIns, startup folders, and Ribbon XML inside Open XML add-in/template files where available.
+- It writes a read-only report to the user's Desktop as `KL-Office-Diagnostic.txt`.
+
+This diagnostic is an investigation tool, not the detection redesign. No active detection condition is marked complete by adding it. The next decision must be based on the diagnostic evidence.
