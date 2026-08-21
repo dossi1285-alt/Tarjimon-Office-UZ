@@ -410,13 +410,13 @@ namespace TarjimonOfficeUZ.Setup.Preflight
             return first;
         }
 
-        private static string ResolveDeveloper(AddinCandidate item)
+        internal static string ResolveDeveloper(AddinCandidate item)
         {
             if (item.IsOwnProduct) return "Dostonjon Ashurov";
             return string.IsNullOrWhiteSpace(item.Publisher) ? "Aniqlanmagan" : item.Publisher;
         }
 
-        private static string DisplayHost(string host)
+        internal static string DisplayHost(string host)
         {
             if (string.IsNullOrWhiteSpace(host)) return string.Empty;
             var parts = host.Split(new[] { ',', '/' }, StringSplitOptions.RemoveEmptyEntries)
@@ -562,9 +562,9 @@ namespace TarjimonOfficeUZ.Setup.Preflight
                 var row = new ListViewItem(string.IsNullOrWhiteSpace(item.Product) ? "Noma'lum" : item.Product);
                 row.SubItems.Add(string.IsNullOrWhiteSpace(item.Publisher) ? "Ishlab chiqaruvchi noma'lum" : item.Publisher);
                 row.SubItems.Add(string.IsNullOrWhiteSpace(item.Version) ? "—" : item.Version);
-                row.SubItems.Add(DisplayHost(item.Host));
+                row.SubItems.Add(Program.DisplayHost(item.Host));
                 row.SubItems.Add(item.Score + "/100");
-                row.SubItems.Add(ResolveDeveloper(item));
+                row.SubItems.Add(Program.ResolveDeveloper(item));
                 row.Tag = item; row.Checked = item.IsOwnProduct; list.Items.Add(row);
             }
 
