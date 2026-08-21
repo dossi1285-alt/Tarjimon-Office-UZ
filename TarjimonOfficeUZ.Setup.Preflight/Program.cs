@@ -25,9 +25,6 @@ namespace TarjimonOfficeUZ.Setup.Preflight
 
     internal static class Program
     {
-        // Functional signals, not a hard-coded list of translator product names.
-        // Generic words such as "language" are deliberately absent. A publisher
-        // such as Igor Pavlov alone can never make a product a translator candidate.
         private static readonly string[] FunctionWords =
         {
             "translit", "transliteration", "transliterator", "translator", "translation",
@@ -94,9 +91,6 @@ namespace TarjimonOfficeUZ.Setup.Preflight
                 ? new[] { RegistryView.Registry64, RegistryView.Registry32 }
                 : new[] { RegistryView.Default };
 
-            // Office-specific registration and Office startup files are the primary sources.
-            // We deliberately do not launch Word/Excel here because doing so could execute
-            // third-party startup macros/add-ins during installation.
             ScanOfficeAddins(discovered, views);
             ScanWordStartup(discovered);
             ScanExcelStartup(discovered);
@@ -174,9 +168,6 @@ namespace TarjimonOfficeUZ.Setup.Preflight
                     var officeAssociation = ContainsOfficeAssociation(installLocation, displayIcon, url);
                     var functionalFileEvidence = FindFunctionalFileEvidence(installLocation);
 
-                    // Windows Uninstall is not an Office-add-in source by itself.
-                    // Third-party products enter the migration list only when the uninstall
-                    // record is tied to Office evidence or an Office-like functional file.
                     if (!own && semantic <= 0 && string.IsNullOrWhiteSpace(functionalFileEvidence)) continue;
                     if (!own && !officeAssociation && string.IsNullOrWhiteSpace(functionalFileEvidence)) continue;
 
@@ -397,9 +388,6 @@ namespace TarjimonOfficeUZ.Setup.Preflight
 
         private static string BuildProductIdentity(AddinCandidate item)
         {
-            // Own-product identity must take precedence over an MSI product-code identity.
-            // Different releases/components can have different MSI codes but still belong
-            // to the same Tarjimon Office UZ product family and must be shown as one row.
             if (item.IsOwnProduct) return "OWN:tarjimon-office-uz";
             var code = ExtractProductCode(item.UninstallString);
             if (!string.IsNullOrWhiteSpace(code)) return "MSI:" + code;
@@ -510,23 +498,46 @@ namespace TarjimonOfficeUZ.Setup.Preflight
 
         public ReviewForm(List<AddinCandidate> candidates)
         {
-            Text = "Tarjimon Office UZ — mavjud Office tarjimonlari";
-            Width = 900; Height = 480; MinimumSize = new Size(700, 390);
+            Text = "Tarjimon Office UZ — Office tarjimonlari";
+            Width = 980; Height = 560; MinimumSize = new Size(760, 440);
             StartPosition = FormStartPosition.CenterScreen;
             MinimizeBox = false; MaximizeBox = true; FormBorderStyle = FormBorderStyle.Sizable;
             Font = new Font("Segoe UI", 9F);
+            BackColor = Color.White;
 
-            var title = new Label
+            var header = new Panel { Dock = DockStyle.Top, Height = 112, BackColor = Color.White, Padding = new Padding(18, 14, 18, 8) };
+            var brand = new Label
             {
-                Dock = DockStyle.Top, Height = 82,
-                Text = "Kompyuterda Office bilan bog'liq yoki funksional tarjimon/konvertorlar aniqlandi.\r\nAniqlash nomning o'ziga emas, Office ulanishi va funksional metadata signallariga tayanadi. Belgilanmaganlari saqlanadi.",
-                Font = new Font("Segoe UI", 10.5F, FontStyle.Bold), Padding = new Padding(16, 10, 16, 6), TextAlign = ContentAlignment.MiddleLeft
+                Dock = DockStyle.Top, Height = 42,
+                Text = "Tarjimon Office UZ",
+                Font = new Font("Segoe UI Semibold", 18F, FontStyle.Bold),
+                ForeColor = Color.FromArgb(25, 75, 135),
+                TextAlign = ContentAlignment.MiddleLeft
             };
+            var subtitle = new Label
+            {
+                Dock = DockStyle.Top, Height = 27,
+                Text = "Office tarjimonlarini aniqlash",
+                Font = new Font("Segoe UI", 11F),
+                ForeColor = Color.FromArgb(55, 105, 170),
+                TextAlign = ContentAlignment.MiddleLeft
+            };
+            var description = new Label
+            {
+                Dock = DockStyle.Fill,
+                Text = "Kompyuteringizda Office bilan bog'liq yoki funksional tarjimon/konvertorlar aniqlandi. Belgilanmaganlari saqlanadi.",
+                Font = new Font("Segoe UI", 9.5F),
+                ForeColor = Color.FromArgb(75, 75, 75),
+                TextAlign = ContentAlignment.MiddleLeft
+            };
+            header.Controls.Add(description); header.Controls.Add(subtitle); header.Controls.Add(brand);
 
-            list.View = View.Details; list.CheckBoxes = true; list.FullRowSelect = true; list.GridLines = true;
+            list.View = View.Details; list.CheckBoxes = true; list.FullRowSelect = true; list.GridLines = false;
             list.MultiSelect = true; list.HideSelection = false; list.HeaderStyle = ColumnHeaderStyle.Nonclickable;
-            list.Columns.Add("Qo'shimcha nomi", 220); list.Columns.Add("Ishlab chiqaruvchi", 180);
-            list.Columns.Add("Versiya", 75); list.Columns.Add("Dastur", 115); list.Columns.Add("Ishonch", 70); list.Columns.Add("Aniqlash asosi", 360);
+            list.BorderStyle = BorderStyle.FixedSingle;
+            list.BackColor = Color.White;
+            list.Columns.Add("Qo'shimcha nomi", 225); list.Columns.Add("Ishlab chiqaruvchi", 175);
+            list.Columns.Add("Versiya", 75); list.Columns.Add("Dastur", 115); list.Columns.Add("Ishonch", 70); list.Columns.Add("Aniqlash asosi", 350);
             foreach (var item in candidates)
             {
                 var row = new ListViewItem(string.IsNullOrWhiteSpace(item.Product) ? "Noma'lum" : item.Product);
@@ -538,31 +549,50 @@ namespace TarjimonOfficeUZ.Setup.Preflight
                 row.Tag = item; row.Checked = item.IsOwnProduct; list.Items.Add(row);
             }
 
-            var info = new Label
+            var productCard = new Panel
             {
-                Dock = DockStyle.Bottom, Height = 62,
-                Text = "Muhim: 'Igor Pavlov' kabi faqat ishlab chiqaruvchi nomi hech qachon yetarli signal emas. Office Addins, Word/Excel startup fayli va funksional metadata asosiy dalildir.",
-                Padding = new Padding(16, 7, 16, 4), ForeColor = Color.DarkSlateGray, TextAlign = ContentAlignment.MiddleLeft
+                Dock = DockStyle.Bottom, Height = 66,
+                BackColor = Color.FromArgb(244, 248, 253),
+                Padding = new Padding(14, 7, 14, 7)
             };
+            var productName = new Label
+            {
+                Dock = DockStyle.Top, Height = 25,
+                Text = "Tarjimon Office UZ",
+                Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold),
+                ForeColor = Color.FromArgb(25, 75, 135),
+                TextAlign = ContentAlignment.MiddleLeft
+            };
+            var productHint = new Label
+            {
+                Dock = DockStyle.Fill,
+                Text = "Mahsulot himoyalangan — o'rnatish uchun belgilangan.",
+                Font = new Font("Segoe UI", 8.8F),
+                ForeColor = Color.FromArgb(80, 90, 105),
+                TextAlign = ContentAlignment.MiddleLeft
+            };
+            productCard.Controls.Add(productHint); productCard.Controls.Add(productName);
 
-            var panel = new Panel { Dock = DockStyle.Bottom, Height = 54, Padding = new Padding(8, 5, 8, 7) };
-            var cancel = new Button { Text = "Bekor qilish", Width = 120, Height = 34, DialogResult = DialogResult.Cancel, Anchor = AnchorStyles.Top | AnchorStyles.Right };
+            var panel = new Panel { Dock = DockStyle.Bottom, Height = 58, Padding = new Padding(8, 7, 8, 8), BackColor = Color.White };
+            var cancel = new Button { Text = "Bekor qilish", Width = 125, Height = 34, DialogResult = DialogResult.Cancel, Anchor = AnchorStyles.Top | AnchorStyles.Right };
             var confirm = new Button { Text = "Tasdiqlash", Width = 135, Height = 34, DialogResult = DialogResult.OK, Anchor = AnchorStyles.Top | AnchorStyles.Right };
-            Action layoutButtons = () => { cancel.Left = panel.ClientSize.Width - cancel.Width; confirm.Left = cancel.Left - confirm.Width - 8; cancel.Top = 5; confirm.Top = 5; };
+            confirm.BackColor = Color.FromArgb(25, 105, 190); confirm.ForeColor = Color.White; confirm.FlatStyle = FlatStyle.Flat; confirm.FlatAppearance.BorderSize = 0;
+            cancel.FlatStyle = FlatStyle.Flat; cancel.FlatAppearance.BorderColor = Color.FromArgb(205, 210, 218);
+            Action layoutButtons = () => { cancel.Left = panel.ClientSize.Width - cancel.Width; confirm.Left = cancel.Left - confirm.Width - 10; cancel.Top = 7; confirm.Top = 7; };
             panel.Resize += (s, e) => layoutButtons(); panel.Controls.Add(cancel); panel.Controls.Add(confirm); layoutButtons();
 
-            Controls.Add(list); Controls.Add(title); Controls.Add(info); Controls.Add(panel);
+            Controls.Add(list); Controls.Add(header); Controls.Add(productCard); Controls.Add(panel);
             Resize += (s, e) => LayoutList();
             LayoutList();
             AcceptButton = confirm; CancelButton = cancel;
 
             void LayoutList()
             {
-                var bottomReserved = info.Height + panel.Height;
-                list.Left = 16;
-                list.Top = title.Height + 8;
-                list.Width = Math.Max(300, ClientSize.Width - 32);
-                list.Height = Math.Max(100, ClientSize.Height - list.Top - bottomReserved - 8);
+                var bottomReserved = productCard.Height + panel.Height;
+                list.Left = 18;
+                list.Top = header.Height + 6;
+                list.Width = Math.Max(300, ClientSize.Width - 36);
+                list.Height = Math.Max(120, ClientSize.Height - list.Top - bottomReserved - 8);
             }
         }
     }
