@@ -123,7 +123,7 @@ This file is part of the project's continuation memory. GitHub repository `dossi
 
 When a new confirmed project result is obtained, append/update the relevant continuation record rather than relying only on the chat transcript.
 
-## 14. Permanent protected-project rule — added 2026-08-21
+### 14. Permanent protected-project rule — added 2026-08-21
 
 The uploaded handoff/TXT, `PROJECT_RULES.md`, `docs/PROJECT-AUDIT-2026-08-17.md`, and this reminder file are project control documents. Their completed-history, active-condition, architecture, acceptance-criteria, and explicit "do not" instructions must not be silently rewritten, removed, or treated as optional.
 
@@ -170,3 +170,54 @@ A read-only diagnostic was added before any further detection redesign:
 - It writes a read-only report to the user's Desktop as `KL-Office-Diagnostic.txt`.
 
 This diagnostic is an investigation tool, not the detection redesign. No active detection condition is marked complete by adding it. The next decision must be based on the diagnostic evidence.
+
+## 18. Permanent user-workflow rule — added 2026-08-21
+
+The user explicitly does **not** want a manual, repetitive testing workflow where the assistant writes a PowerShell command/script and then makes the user run different PowerShell commands one by one to inspect or verify every change.
+
+The assistant must take responsibility for automating as much of the build/test/verification process as the available GitHub/project tooling allows. After an assistant-made change, the user should not be burdened with manual PowerShell diagnostics unless there is a genuine machine-local fact that cannot be obtained or tested through the available tooling.
+
+The user's normal synchronization options are:
+
+- If the assistant changed GitHub directly: normally the user only needs **Fetch → Pull** to receive the change locally, followed by whatever build/test action is genuinely unavoidable.
+- If the user made local changes: the user may **Commit → Push**, after which the assistant can work from the updated remote state.
+- The assistant may explicitly ask the user to **Commit** or **Push** when the user's local state must be brought to GitHub. It should not repeatedly demand manual PowerShell testing when the task can reasonably be automated.
+
+The assistant must prefer, in this order:
+
+1. Automate the required build/test/verification in the project itself (for example through a test harness, build target, GitHub Actions, or another suitable project mechanism).
+2. Use GitHub/project tooling to inspect results where available.
+3. Ask the user for a manual local action only when it is genuinely required by the local machine/environment.
+
+The assistant must not make the user repeatedly restate this preference in future chats. This rule is permanent project workflow memory.
+
+### 18.1 New-chat continuity rule
+
+If the current conversation becomes too long and work must continue in a new chat, the assistant must preserve the project's accumulated technical state and, when needed for reliable continuation, create/update a plain-text handoff file containing the current project status, completed history, active conditions, latest commits, blockers, next steps, and user workflow rules.
+
+The handoff TXT must be generated from the actual project reminder/history and current work state, not reconstructed from guesswork. In the new chat, the assistant must use that handoff/project control information before continuing work.
+
+The user should not have to re-explain the project workflow or repeatedly remind the assistant of these rules.
+
+## 19. User workflow clarification — 2026-08-21
+
+The user clarified that they are not limited to Fetch/Pull/Push. They can also perform **Commit** locally when they have made local changes. The assistant must choose the minimum user-side Git action required by the actual situation:
+
+- Assistant changed remote GitHub files: tell the user **Fetch → Pull**; do not ask them to Push those assistant-made changes.
+- User changed files locally: tell the user **Commit → Push** when the local changes need to be delivered to GitHub.
+- If a local commit already exists and only needs to reach the remote, ask for **Push** rather than another unnecessary commit.
+- If no user-side Git action is required, do not ask for one.
+
+The assistant must not give the user generic or repeated Git commands without first determining what actually changed and where.
+
+### 19.1 Automation-first verification rule
+
+For project work, the assistant must not routinely write manual PowerShell commands for the user to execute and then wait for screenshots/reports if the same verification can be implemented or executed automatically through the project, GitHub Actions, test harnesses, build targets, or available connected tooling.
+
+The assistant should build the necessary automation into the project when practical, so that the user can normally receive a change with the appropriate Git action and let the project perform its own checks. Manual machine-local checks are reserved for cases where the local environment is the only source of the required evidence.
+
+The user's requested workflow is therefore:
+
+**Assistant implements/automates → GitHub commit/update → user performs only the necessary Git synchronization (Fetch/Pull or Commit/Push as applicable) → automated Build/Test/Verification → assistant evaluates the result.**
+
+If the conversation becomes full, the assistant must create the requested TXT handoff from the accumulated project records before continuing in a new chat, so the workflow and technical history are preserved.
