@@ -19,13 +19,6 @@ namespace TarjimonOfficeUZ.Setup.Preflight
         public string Registration { get; set; }
         public string UninstallString { get; set; }
         public bool IsOwnProduct { get; set; }
-
-        public override string ToString()
-        {
-            return string.Format("{0} | {1} | {2} | {3}", Product,
-                string.IsNullOrWhiteSpace(Publisher) ? "Ishlab chiqaruvchi noma'lum" : Publisher,
-                string.IsNullOrWhiteSpace(Version) ? "Versiya noma'lum" : Version, Host);
-        }
     }
 
     internal static class Program
@@ -33,8 +26,9 @@ namespace TarjimonOfficeUZ.Setup.Preflight
         private static readonly string[] TranslatorWords =
         {
             "tarjimon", "translator", "translation", "translate", "language", "lingua",
-            "перевод", "переводчик", "kl office", "kloffice", "office uz", "print kito",
-            "print_kito", "kiril", "kyril", "lotin", "latin", "o'zbek", "uzbek", "узбек"
+            "перевод", "переводчик", "kl office", "kloffice", "kl_office", "office uz",
+            "print kito", "print_kito", "kirill", "kiril", "kyril", "lotin", "latin",
+            "o'zbek", "uzbek", "узбек"
         };
 
         [STAThread]
@@ -88,40 +82,32 @@ namespace TarjimonOfficeUZ.Setup.Preflight
                 : new[] { RegistryView.Default };
 
             foreach (var view in views)
+            foreach (var hive in new[] { RegistryHive.LocalMachine, RegistryHive.CurrentUser })
+            foreach (var host in new[] { "Word", "Excel" })
             {
-                foreach (var hive in new[] { RegistryHive.LocalMachine, RegistryHive.CurrentUser })
+                using (var root = RegistryKey.OpenBaseKey(hive, view))
+                using (var addins = root.OpenSubKey("SOFTWARE\\Microsoft\\Office\\" + host + "\\Addins"))
                 {
-                    foreach (var host in new[] { "Word", "Excel" })
+                    if (addins == null) continue;
+                    foreach (var keyName in addins.GetSubKeyNames())
+                    using (var key = addins.OpenSubKey(keyName))
                     {
-                        using (var root = RegistryKey.OpenBaseKey(hive, view))
-                        using (var addins = root.OpenSubKey("SOFTWARE\\Microsoft\\Office\\" + host + "\\Addins"))
-                        {
-                            if (addins == null) continue;
-                            foreach (var keyName in addins.GetSubKeyNames())
-                            {
-                                using (var key = addins.OpenSubKey(keyName))
-                                {
-                                    if (key == null) continue;
-                                    var friendly = Convert.ToString(key.GetValue("FriendlyName")) ?? keyName;
-                                    var description = Convert.ToString(key.GetValue("Description")) ?? string.Empty;
-                                    var manifest = Convert.ToString(key.GetValue("Manifest")) ?? string.Empty;
-                                    var progId = Convert.ToString(key.GetValue("ProgId")) ?? string.Empty;
-                                    var assembly = Convert.ToString(key.GetValue("Assembly")) ?? string.Empty;
-                                    var text = NormalizeSearchText(keyName, friendly, description, manifest, progId, assembly);
-                                    if (!IsTranslatorCandidate(text)) continue;
-                                    AddCandidate(discovered, friendly, host, hive + "\\" + view + "\\Office\\Addins\\" + keyName,
-                                        text, keyName);
-                                }
-                            }
-                        }
+                        if (key == null) continue;
+                        var friendly = Convert.ToString(key.GetValue("FriendlyName")) ?? keyName;
+                        var description = Convert.ToString(key.GetValue("Description")) ?? string.Empty;
+                        var manifest = Convert.ToString(key.GetValue("Manifest")) ?? string.Empty;
+                        var progId = Convert.ToString(key.GetValue("ProgId")) ?? string.Empty;
+                        var assembly = Convert.ToString(key.GetValue("Assembly")) ?? string.Empty;
+                        var text = NormalizeSearchText(keyName, friendly, description, manifest, progId, assembly);
+                        if (IsTranslatorCandidate(text))
+                            AddCandidate(discovered, friendly, host, hive + "\\" + view + "\\Office\\Addins\\" + keyName, text, keyName);
                     }
                 }
             }
 
-            // Some Word add-ins do not register under Office\\Word\\Addins.
-            // They load as global templates/add-in files from Word STARTUP.
             ScanWordStartup(discovered);
             ScanExcelStartup(discovered);
+            ScanOfficeComRegistrations(discovered, views);
 
             return discovered
                 .GroupBy(BuildProductIdentity, StringComparer.OrdinalIgnoreCase)
@@ -130,12 +116,9 @@ namespace TarjimonOfficeUZ.Setup.Preflight
                     var first = g.First();
                     first.Host = string.Join(", ", g.Select(x => x.Host).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(x => x));
                     first.IsOwnProduct = g.Any(x => x.IsOwnProduct);
-                    if (string.IsNullOrWhiteSpace(first.UninstallString))
-                        first.UninstallString = g.Select(x => x.UninstallString).FirstOrDefault(x => !string.IsNullOrWhiteSpace(x));
-                    if (string.IsNullOrWhiteSpace(first.Publisher))
-                        first.Publisher = g.Select(x => x.Publisher).FirstOrDefault(x => !string.IsNullOrWhiteSpace(x));
-                    if (string.IsNullOrWhiteSpace(first.Version))
-                        first.Version = g.Select(x => x.Version).FirstOrDefault(x => !string.IsNullOrWhiteSpace(x));
+                    first.UninstallString = g.Select(x => x.UninstallString).FirstOrDefault(x => !string.IsNullOrWhiteSpace(x)) ?? first.UninstallString;
+                    first.Publisher = g.Select(x => x.Publisher).FirstOrDefault(x => !string.IsNullOrWhiteSpace(x)) ?? first.Publisher;
+                    first.Version = g.Select(x => x.Version).FirstOrDefault(x => !string.IsNullOrWhiteSpace(x)) ?? first.Version;
                     return first;
                 })
                 .OrderByDescending(x => x.IsOwnProduct)
@@ -173,13 +156,8 @@ namespace TarjimonOfficeUZ.Setup.Preflight
                 paths.Add(Path.Combine(appData, "Microsoft", "Word", "STARTUP"));
                 paths.Add(Path.Combine(appData, "Microsoft", "Templates"));
             }
-
-            using (var key = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Office\\Word\\Options"))
-            {
-                var configured = Convert.ToString(key == null ? null : key.GetValue("STARTUP-PATH"));
-                if (!string.IsNullOrWhiteSpace(configured)) paths.Add(Environment.ExpandEnvironmentVariables(configured));
-            }
-
+            AddOfficeVersionStartupPaths(paths, "Word", "STARTUP");
+            AddConfiguredStartupPaths(paths, "Word", "STARTUP-PATH");
             foreach (var path in paths.Distinct(StringComparer.OrdinalIgnoreCase))
                 ScanFileDirectory(list, path, "Word", "Word Startup");
         }
@@ -188,17 +166,58 @@ namespace TarjimonOfficeUZ.Setup.Preflight
         {
             var paths = new List<string>();
             var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            if (!string.IsNullOrWhiteSpace(appData))
-                paths.Add(Path.Combine(appData, "Microsoft", "Excel", "XLSTART"));
-
-            using (var key = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Office\\Excel\\Options"))
-            {
-                var configured = Convert.ToString(key == null ? null : key.GetValue("OPEN"));
-                if (!string.IsNullOrWhiteSpace(configured)) paths.Add(Environment.ExpandEnvironmentVariables(configured));
-            }
-
+            if (!string.IsNullOrWhiteSpace(appData)) paths.Add(Path.Combine(appData, "Microsoft", "Excel", "XLSTART"));
+            AddOfficeVersionStartupPaths(paths, "Excel", "XLSTART");
+            AddConfiguredStartupPaths(paths, "Excel", "OPEN");
             foreach (var path in paths.Distinct(StringComparer.OrdinalIgnoreCase))
                 ScanFileDirectory(list, path, "Excel", "Excel Startup");
+        }
+
+        private static void AddOfficeVersionStartupPaths(List<string> paths, string host, string folder)
+        {
+            foreach (var view in Environment.Is64BitOperatingSystem ? new[] { RegistryView.Registry64, RegistryView.Registry32 } : new[] { RegistryView.Default })
+            foreach (var hive in new[] { RegistryHive.LocalMachine, RegistryHive.CurrentUser })
+            using (var root = RegistryKey.OpenBaseKey(hive, view))
+            using (var office = root.OpenSubKey("SOFTWARE\\Microsoft\\Office"))
+            {
+                if (office == null) continue;
+                foreach (var version in office.GetSubKeyNames())
+                {
+                    using (var key = office.OpenSubKey(version + "\\" + host + "\\Options"))
+                    {
+                        var configured = Convert.ToString(key == null ? null : key.GetValue(folder == "XLSTART" ? "OPEN" : "STARTUP-PATH"));
+                        if (!string.IsNullOrWhiteSpace(configured)) paths.Add(Environment.ExpandEnvironmentVariables(configured));
+                    }
+                }
+            }
+
+            var programFiles = new[]
+            {
+                Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
+                Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86)
+            };
+            foreach (var pf in programFiles.Where(x => !string.IsNullOrWhiteSpace(x)))
+            {
+                paths.Add(Path.Combine(pf, "Microsoft Office", "root", "Office16", folder));
+                paths.Add(Path.Combine(pf, "Microsoft Office", "Office16", folder));
+            }
+        }
+
+        private static void AddConfiguredStartupPaths(List<string> paths, string host, string valueName)
+        {
+            foreach (var view in Environment.Is64BitOperatingSystem ? new[] { RegistryView.Registry64, RegistryView.Registry32 } : new[] { RegistryView.Default })
+            foreach (var hive in new[] { RegistryHive.LocalMachine, RegistryHive.CurrentUser })
+            using (var root = RegistryKey.OpenBaseKey(hive, view))
+            using (var office = root.OpenSubKey("SOFTWARE\\Microsoft\\Office"))
+            {
+                if (office == null) continue;
+                foreach (var version in office.GetSubKeyNames())
+                using (var key = office.OpenSubKey(version + "\\" + host + "\\Options"))
+                {
+                    var configured = Convert.ToString(key == null ? null : key.GetValue(valueName));
+                    if (!string.IsNullOrWhiteSpace(configured)) paths.Add(Environment.ExpandEnvironmentVariables(configured));
+                }
+            }
         }
 
         private static void ScanFileDirectory(List<AddinCandidate> list, string directory, string host, string locationName)
@@ -206,43 +225,72 @@ namespace TarjimonOfficeUZ.Setup.Preflight
             if (string.IsNullOrWhiteSpace(directory) || !Directory.Exists(directory)) return;
             string[] files;
             try { files = Directory.GetFiles(directory); } catch { return; }
-
             foreach (var file in files)
             {
                 var name = Path.GetFileName(file) ?? string.Empty;
                 var extension = Path.GetExtension(file) ?? string.Empty;
-                if (!new[] { ".dotm", ".dot", ".dotx", ".wll", ".xlam", ".xla", ".xll" }
-                    .Contains(extension, StringComparer.OrdinalIgnoreCase)) continue;
-
-                var text = NormalizeSearchText(name, file);
+                if (!new[] { ".dotm", ".dot", ".dotx", ".wll", ".xlam", ".xla", ".xll" }.Contains(extension, StringComparer.OrdinalIgnoreCase)) continue;
+                var text = NormalizeSearchText(name, file, ReadFileMetadata(file));
                 if (!IsTranslatorCandidate(text)) continue;
-
                 string publisher, version;
                 var uninstall = FindUninstall(name, name, out publisher, out version);
                 list.Add(new AddinCandidate
                 {
-                    Product = Path.GetFileNameWithoutExtension(name),
-                    Publisher = publisher,
-                    Version = version,
-                    Host = host,
-                    Registration = locationName + ": " + file,
-                    UninstallString = uninstall,
+                    Product = Path.GetFileNameWithoutExtension(name), Publisher = publisher, Version = version,
+                    Host = host, Registration = locationName + ": " + file, UninstallString = uninstall,
                     IsOwnProduct = IsOwnProduct(text, publisher)
                 });
             }
         }
 
+        private static string ReadFileMetadata(string file)
+        {
+            try
+            {
+                var info = FileVersionInfo.GetVersionInfo(file);
+                return string.Join(" ", info.ProductName, info.CompanyName, info.FileDescription, info.InternalName, info.OriginalFilename);
+            }
+            catch { return string.Empty; }
+        }
+
+        private static void ScanOfficeComRegistrations(List<AddinCandidate> list, RegistryView[] views)
+        {
+            foreach (var view in views)
+            foreach (var hive in new[] { RegistryHive.LocalMachine, RegistryHive.CurrentUser })
+            using (var root = RegistryKey.OpenBaseKey(hive, view))
+            using (var classes = root.OpenSubKey("Software\\Classes\\CLSID"))
+            {
+                if (classes == null) continue;
+                foreach (var clsid in classes.GetSubKeyNames())
+                {
+                    try
+                    {
+                        using (var key = classes.OpenSubKey(clsid))
+                        {
+                            if (key == null) continue;
+                            var display = Convert.ToString(key.GetValue(null)) ?? string.Empty;
+                            var progId = Convert.ToString(key.OpenSubKey("ProgID") == null ? null : key.OpenSubKey("ProgID").GetValue(null)) ?? string.Empty;
+                            var text = NormalizeSearchText(display, progId, clsid);
+                            using (var inproc = key.OpenSubKey("InprocServer32")) text += " " + Convert.ToString(inproc == null ? null : inproc.GetValue(null));
+                            using (var local = key.OpenSubKey("LocalServer32")) text += " " + Convert.ToString(local == null ? null : local.GetValue(null));
+                            if (!IsTranslatorCandidate(NormalizeSearchText(text))) continue;
+                            AddCandidate(list, string.IsNullOrWhiteSpace(display) ? progId : display, "Word/Excel", "CLSID:" + clsid, text, clsid);
+                        }
+                    }
+                    catch { }
+                }
+            }
+        }
+
         private static string NormalizeSearchText(params string[] values)
         {
-            return string.Join(" ", values.Where(x => !string.IsNullOrWhiteSpace(x)))
-                .ToLowerInvariant().Replace("-", " ").Replace("_", " ");
+            return string.Join(" ", values.Where(x => !string.IsNullOrWhiteSpace(x))).ToLowerInvariant().Replace("-", " ").Replace("_", " ");
         }
 
         private static bool IsOwnProduct(string text, string publisher)
         {
             var p = (publisher ?? string.Empty).ToLowerInvariant();
-            return text.Contains("tarjimon office uz") || text.Contains("tarjimonofficeuz") ||
-                   p.Contains("tarjimon office uz") || p.Contains("tarjimonofficeuz");
+            return text.Contains("tarjimon office uz") || text.Contains("tarjimonofficeuz") || p.Contains("tarjimon office uz") || p.Contains("tarjimonofficeuz");
         }
 
         private static string BuildProductIdentity(AddinCandidate item)
@@ -266,34 +314,25 @@ namespace TarjimonOfficeUZ.Setup.Preflight
 
         private static string FindUninstall(string friendly, string keyName, out string publisher, out string version)
         {
-            publisher = string.Empty;
-            version = string.Empty;
+            publisher = string.Empty; version = string.Empty;
             var views = Environment.Is64BitOperatingSystem ? new[] { RegistryView.Registry64, RegistryView.Registry32 } : new[] { RegistryView.Default };
             foreach (var view in views)
             foreach (var hive in new[] { RegistryHive.LocalMachine, RegistryHive.CurrentUser })
+            using (var root = RegistryKey.OpenBaseKey(hive, view))
+            using (var parent = root.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall"))
             {
-                using (var root = RegistryKey.OpenBaseKey(hive, view))
-                using (var parent = root.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall"))
+                if (parent == null) continue;
+                foreach (var name in parent.GetSubKeyNames())
+                using (var key = parent.OpenSubKey(name))
                 {
-                    if (parent == null) continue;
-                    foreach (var name in parent.GetSubKeyNames())
-                    using (var key = parent.OpenSubKey(name))
-                    {
-                        if (key == null) continue;
-                        var display = Convert.ToString(key.GetValue("DisplayName")) ?? string.Empty;
-                        var uninstall = Convert.ToString(key.GetValue("UninstallString")) ?? string.Empty;
-                        var pub = Convert.ToString(key.GetValue("Publisher")) ?? string.Empty;
-                        var ver = Convert.ToString(key.GetValue("DisplayVersion")) ?? string.Empty;
-                        var candidate = NormalizeSearchText(display, pub, name);
-                        if (!string.IsNullOrWhiteSpace(uninstall) &&
-                            (candidate.Contains((friendly ?? string.Empty).ToLowerInvariant()) ||
-                             candidate.Contains((keyName ?? string.Empty).ToLowerInvariant())))
-                        {
-                            publisher = pub;
-                            version = ver;
-                            return uninstall;
-                        }
-                    }
+                    if (key == null) continue;
+                    var display = Convert.ToString(key.GetValue("DisplayName")) ?? string.Empty;
+                    var uninstall = Convert.ToString(key.GetValue("UninstallString")) ?? string.Empty;
+                    var pub = Convert.ToString(key.GetValue("Publisher")) ?? string.Empty;
+                    var ver = Convert.ToString(key.GetValue("DisplayVersion")) ?? string.Empty;
+                    var candidate = NormalizeSearchText(display, pub, name);
+                    if (!string.IsNullOrWhiteSpace(uninstall) && (candidate.Contains((friendly ?? string.Empty).ToLowerInvariant()) || candidate.Contains((keyName ?? string.Empty).ToLowerInvariant())))
+                    { publisher = pub; version = ver; return uninstall; }
                 }
             }
             return string.Empty;
@@ -313,22 +352,15 @@ namespace TarjimonOfficeUZ.Setup.Preflight
             }
             else if (trimmed.StartsWith("\""))
             {
-                var end = trimmed.IndexOf('"', 1);
-                fileName = end > 0 ? trimmed.Substring(1, end - 1) : trimmed.Trim('"');
-                arguments = end > 0 ? trimmed.Substring(end + 1).Trim() : string.Empty;
+                var end = trimmed.IndexOf('"', 1); fileName = end > 0 ? trimmed.Substring(1, end - 1) : trimmed.Trim('"'); arguments = end > 0 ? trimmed.Substring(end + 1).Trim() : string.Empty;
             }
             else
             {
-                var split = trimmed.IndexOf(' ');
-                fileName = split > 0 ? trimmed.Substring(0, split) : trimmed;
-                arguments = split > 0 ? trimmed.Substring(split + 1) : string.Empty;
+                var split = trimmed.IndexOf(' '); fileName = split > 0 ? trimmed.Substring(0, split) : trimmed; arguments = split > 0 ? trimmed.Substring(split + 1) : string.Empty;
             }
-
             using (var p = Process.Start(new ProcessStartInfo { FileName = fileName, Arguments = arguments, UseShellExecute = true, Verb = "runas" }))
             {
-                if (p == null) return false;
-                p.WaitForExit();
-                return p.ExitCode == 0 || p.ExitCode == 3010 || p.ExitCode == 1641;
+                if (p == null) return false; p.WaitForExit(); return p.ExitCode == 0 || p.ExitCode == 3010 || p.ExitCode == 1641;
             }
         }
 
@@ -387,7 +419,6 @@ namespace TarjimonOfficeUZ.Setup.Preflight
             var confirm = new Button { Text = "Tasdiqlash", Width = 135, Height = 34, DialogResult = DialogResult.OK, Anchor = AnchorStyles.Top | AnchorStyles.Right };
             Action layout = () => { cancel.Left = panel.ClientSize.Width - cancel.Width; confirm.Left = cancel.Left - confirm.Width - 8; cancel.Top = 5; confirm.Top = 5; };
             panel.Resize += (s, e) => layout(); panel.Controls.Add(cancel); panel.Controls.Add(confirm); layout();
-
             list.Location = new Point(16, 100); list.Size = new Size(712, 200); list.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             Controls.Add(list); Controls.Add(title); Controls.Add(info); Controls.Add(panel);
             AcceptButton = confirm; CancelButton = cancel;
