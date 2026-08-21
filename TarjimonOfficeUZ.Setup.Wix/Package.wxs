@@ -29,6 +29,10 @@
     </Files>
 
     <Component Id="WordAddinRegistration64" Directory="WORDDIR">
+      <RemoveRegistryKey
+          Root="HKCU"
+          Key="Software\Microsoft\Office\Word\Addins\TarjimonOfficeUZ.Word"
+          Action="removeOnInstall" />
       <RegistryKey Root="HKLM" Key="Software\Microsoft\Office\Word\Addins\TarjimonOfficeUZ.Word">
         <RegistryValue Name="Description" Type="string" Value="Tarjimon Office UZ Word add-in" />
         <RegistryValue Name="FriendlyName" Type="string" Value="Tarjimon Office UZ" />
@@ -38,6 +42,10 @@
     </Component>
 
     <Component Id="WordAddinRegistration32" Directory="REG32DIR" Bitness="always32">
+      <RemoveRegistryKey
+          Root="HKCU"
+          Key="Software\Microsoft\Office\Word\Addins\TarjimonOfficeUZ.Word"
+          Action="removeOnInstall" />
       <RegistryKey Root="HKLM" Key="Software\Microsoft\Office\Word\Addins\TarjimonOfficeUZ.Word">
         <RegistryValue Name="Description" Type="string" Value="Tarjimon Office UZ Word add-in" />
         <RegistryValue Name="FriendlyName" Type="string" Value="Tarjimon Office UZ" />
@@ -47,6 +55,10 @@
     </Component>
 
     <Component Id="ExcelAddinRegistration64" Directory="EXCELDIR">
+      <RemoveRegistryKey
+          Root="HKCU"
+          Key="Software\Microsoft\Office\Excel\Addins\TarjimonOfficeUZ.Excel"
+          Action="removeOnInstall" />
       <RegistryKey Root="HKLM" Key="Software\Microsoft\Office\Excel\Addins\TarjimonOfficeUZ.Excel">
         <RegistryValue Name="Description" Type="string" Value="Tarjimon Office UZ Excel add-in" />
         <RegistryValue Name="FriendlyName" Type="string" Value="Tarjimon Office UZ" />
@@ -56,6 +68,10 @@
     </Component>
 
     <Component Id="ExcelAddinRegistration32" Directory="REG32DIR" Bitness="always32">
+      <RemoveRegistryKey
+          Root="HKCU"
+          Key="Software\Microsoft\Office\Excel\Addins\TarjimonOfficeUZ.Excel"
+          Action="removeOnInstall" />
       <RegistryKey Root="HKLM" Key="Software\Microsoft\Office\Excel\Addins\TarjimonOfficeUZ.Excel">
         <RegistryValue Name="Description" Type="string" Value="Tarjimon Office UZ Excel add-in" />
         <RegistryValue Name="FriendlyName" Type="string" Value="Tarjimon Office UZ" />
