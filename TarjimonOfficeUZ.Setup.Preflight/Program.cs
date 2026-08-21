@@ -397,9 +397,12 @@ namespace TarjimonOfficeUZ.Setup.Preflight
 
         private static string BuildProductIdentity(AddinCandidate item)
         {
+            // Own-product identity must take precedence over an MSI product-code identity.
+            // Different releases/components can have different MSI codes but still belong
+            // to the same Tarjimon Office UZ product family and must be shown as one row.
+            if (item.IsOwnProduct) return "OWN:tarjimon-office-uz";
             var code = ExtractProductCode(item.UninstallString);
             if (!string.IsNullOrWhiteSpace(code)) return "MSI:" + code;
-            if (item.IsOwnProduct) return "OWN:tarjimon-office-uz";
             var product = NormalizeIdentity(item.Product);
             var publisher = NormalizeIdentity(item.Publisher);
             if (!string.IsNullOrWhiteSpace(publisher)) return "APP:" + product + "|" + publisher;
