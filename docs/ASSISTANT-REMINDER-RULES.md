@@ -61,48 +61,63 @@ Every GitHub-change notification must state the changed file/project, commit SHA
 
 The previous detection test was NOT fully successful: the user's Word screenshot showed `KL Office uz`, while the Preflight list did not show it. The own-product row was detected, but extra `TarjimonOfficeUZ.Excel` and `TarjimonOfficeUZ.Word` rows also appeared with unknown publisher.
 
-### 9. Latest implementation — resizable window and duplicate grouping
+### 9. Completed condition — resizable Preflight window
 
-The user then confirmed two additional requirements:
+The requirement to keep the normal dialog size while allowing the user to enlarge the window is now **VERIFIED COMPLETE**.
 
-- Keep the current standard window size, but allow the user to enlarge the window so a long detection list can be viewed without unnecessary scrolling.
-- If several detected entries belong to the same product, combine them into one row and show the detected Office hosts together, so the user is not confused by repeated entries.
+Evidence from the latest user test:
 
-Implementation completed on GitHub in:
+- the window can be resized;
+- the list expands vertically and horizontally;
+- a long detection list can be viewed by enlarging the window;
+- the standard starting size remains compact;
+- the resize behavior works in the actual built Preflight executable.
 
-`TarjimonOfficeUZ.Setup.Preflight/Program.cs`
+Therefore this condition has been removed from the active conditions list. It remains in project history as completed.
 
-Commit: `7ef007f11fe0c8ca9ae2c627607f1c93faa847da`
+### 10. Current detection/grouping problem
 
-Changes:
+The second requirement is NOT complete.
 
-- default dialog size remains approximately 760×420;
-- the dialog is now resizable and has a minimum size;
-- maximize is available;
-- the detection ListView expands/shrinks with the window;
-- the title, information text, and two action buttons remain positioned correctly while resizing;
-- own-product entries are grouped under one stable identity;
-- non-MSI entries are grouped without using version as part of the identity, reducing duplicate Word/Excel rows for the same product;
-- Word/Excel hosts are combined into the `Dastur` column;
-- third-party add-ins remain unchecked by default.
+The latest test showed that the scanner is finding many unrelated COM registrations such as language/runtime components. The root cause is in the current `ScanOfficeComRegistrations` strategy: it scans the entire `Software\\Classes\\CLSID` tree and then applies the broad `TranslatorWords` matcher. The matcher contains generic terms such as `language`, so unrelated COM classes can be classified as translator/add-in candidates.
 
-This is **IMPLEMENTED, NOT YET VERIFIED**. The acceptance test still has to confirm both the resize behavior and duplicate grouping in the actual built installer.
+This global CLSID scan is therefore too broad and is not a safe basis for the installer migration list.
 
-### 10. Current active test sequence
+The row showing publisher `Igor Pavlov` and version `25.01` should NOT be assumed to be an Office translator solely from that metadata. It may be related to another installed component (for example a 7-Zip/Igor Pavlov component), but the current scanner has not established that it is an Office add-in. It must not be selected automatically and must not be treated as a translator without an Office-specific registration/loading path.
 
-1. Fetch origin.
-2. Pull origin.
-3. Build `TarjimonOfficeUZ.Setup.Preflight`.
-4. Build `TarjimonOfficeUZ.Setup.Wix`.
-5. Launch the combined installer.
-6. Confirm the window can be enlarged and the full list becomes visible.
-7. Confirm the same product is shown as one row with combined hosts.
-8. Confirm `KL Office uz` detection remains an active requirement until it is actually found in the list.
-9. Do NOT press `Tasdiqlash` until the detection result is accepted.
+### 11. Required detection redesign before the next code change
+
+The next implementation should:
+
+1. Stop treating the entire machine-wide CLSID registry as an Office add-in list.
+2. Keep Office-specific registry locations as the primary detection source: `Office\\Word\\Addins`, `Office\\Excel\\Addins`, and relevant Office/VSTO/add-in registration paths.
+3. Keep Word `STARTUP` and Excel `XLSTART`/configured startup paths for file-based add-ins/templates.
+4. If COM/CLSID inspection is retained, use it only when there is an explicit Office add-in relationship or another reliable Office-specific registration/link; do not classify a CLSID merely because its name/path contains a generic word such as `language`.
+5. Narrow the translator keyword matcher. Generic words such as `language` and `translate` alone must not be sufficient to classify a random COM class. Strong product/vendor/add-in evidence should be required.
+6. Preserve third-party detection when there is reliable evidence that the component is an Office add-in, but keep it unchecked by default.
+7. Group entries belonging to the same real product only after a reliable product identity has been established. Word/Excel host information should be merged into one row for the same product.
+8. Do not use publisher/version alone as proof that two unrelated registrations belong to the same product.
+9. Investigate `KL Office uz` specifically through the Office/Word registration and loading mechanisms that actually cause its Ribbon to appear, rather than broadening the global CLSID scan further.
+10. Do not press `Tasdiqlash` until the detection list is accurate enough for safe user-controlled removal.
+
+### 12. Current active test sequence
+
+1. Implement the safer Office-specific detection/grouping redesign.
+2. Commit the change to GitHub and record the commit SHA.
+3. User: Fetch origin.
+4. User: Pull origin.
+5. Build `TarjimonOfficeUZ.Setup.Preflight`.
+6. Build `TarjimonOfficeUZ.Setup.Wix`.
+7. Launch the combined installer.
+8. Verify `KL Office uz` is detected if it is actually registered as an Office add-in.
+9. Verify unrelated COM/runtime components no longer appear merely because they contain generic words such as `language`.
+10. Verify the same product is shown as one row with combined Word/Excel hosts.
+11. Verify own product remains checked and third-party products remain unchecked.
+12. Do NOT press `Tasdiqlash` until the detection result is accepted.
 
 Only after the relevant acceptance tests pass may a condition be removed from the active list.
 
-### 11. GitHub as canonical project memory
+### 13. GitHub as canonical project memory
 
 This file is part of the project's continuation memory. GitHub repository `dossi1285-alt/Tarjimon-Office-UZ`, active branch `release/1.0-installer-cleanup`, remains the canonical project source/history.
 
