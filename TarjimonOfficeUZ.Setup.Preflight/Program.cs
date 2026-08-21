@@ -410,6 +410,25 @@ namespace TarjimonOfficeUZ.Setup.Preflight
             return first;
         }
 
+        private static string ResolveDeveloper(AddinCandidate item)
+        {
+            if (item.IsOwnProduct) return "Dostonjon Ashurov";
+            return string.IsNullOrWhiteSpace(item.Publisher) ? "Aniqlanmagan" : item.Publisher;
+        }
+
+        private static string DisplayHost(string host)
+        {
+            if (string.IsNullOrWhiteSpace(host)) return string.Empty;
+            var parts = host.Split(new[] { ',', '/' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(x => x.Trim())
+                .Where(x => !x.Equals("Windows", StringComparison.OrdinalIgnoreCase) &&
+                            !x.Equals("Office", StringComparison.OrdinalIgnoreCase) &&
+                            !x.Equals("Office/Windows", StringComparison.OrdinalIgnoreCase))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+            return string.Join(", ", parts);
+        }
+
         private static string ExtractProductCode(string commandLine)
         {
             if (string.IsNullOrWhiteSpace(commandLine)) return string.Empty;
@@ -536,16 +555,16 @@ namespace TarjimonOfficeUZ.Setup.Preflight
             list.MultiSelect = true; list.HideSelection = false; list.HeaderStyle = ColumnHeaderStyle.Nonclickable;
             list.BorderStyle = BorderStyle.FixedSingle;
             list.BackColor = Color.White;
-            list.Columns.Add("Qo'shimcha nomi", 225); list.Columns.Add("Ishlab chiqaruvchi", 175);
-            list.Columns.Add("Versiya", 75); list.Columns.Add("Dastur", 115); list.Columns.Add("Ishonch", 70); list.Columns.Add("Aniqlash asosi", 350);
+            list.Columns.Add("Mahsulot nomi", 225); list.Columns.Add("Ishlab chiqaruvchi", 175);
+            list.Columns.Add("Versiya", 75); list.Columns.Add("Dastur", 115); list.Columns.Add("Ishonch", 70); list.Columns.Add("Muallif / ishlab chiquvchi", 350);
             foreach (var item in candidates)
             {
                 var row = new ListViewItem(string.IsNullOrWhiteSpace(item.Product) ? "Noma'lum" : item.Product);
                 row.SubItems.Add(string.IsNullOrWhiteSpace(item.Publisher) ? "Ishlab chiqaruvchi noma'lum" : item.Publisher);
                 row.SubItems.Add(string.IsNullOrWhiteSpace(item.Version) ? "—" : item.Version);
-                row.SubItems.Add(item.Host);
+                row.SubItems.Add(DisplayHost(item.Host));
                 row.SubItems.Add(item.Score + "/100");
-                row.SubItems.Add(item.Evidence);
+                row.SubItems.Add(ResolveDeveloper(item));
                 row.Tag = item; row.Checked = item.IsOwnProduct; list.Items.Add(row);
             }
 
