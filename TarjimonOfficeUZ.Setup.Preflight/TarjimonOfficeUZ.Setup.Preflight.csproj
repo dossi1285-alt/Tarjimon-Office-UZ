@@ -23,7 +23,6 @@
 
   <ItemGroup Condition="'$(PreflightVersion)' == '1.1.0'">
     <Compile Remove="Program.cs" />
-    <Compile Include="ProgramV110.cs" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(MsiSource)' != '' and Exists('$(MsiSource)')">
