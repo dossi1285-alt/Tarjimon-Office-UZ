@@ -8,8 +8,15 @@ User ran the rebuilt Preflight and provided a screenshot.
 - `TransLit` is detected as a Word candidate: `60/100`, `Word`, with `Word Startup + Office startup fayli` evidence.
 - `Igor Pavlov` does not appear in the list. This remains the required behavior.
 - The scanner no longer shows the previous broad COM/runtime false positives in this test.
-- The own product is detected, but it is currently split into multiple rows.
+- The own product is now consolidated into ONE row: `Tarjimon Office UZ`.
+- `Tarjimon Office UZ` is checked by default.
 - `TransLit` is correctly unchecked by default.
+- `Dastur` for the own product shows `Excel, Word`; `Windows` is not shown as an Office host.
+- User-facing `Mahsulot nomi` and `Muallif / ishlab chiquvchi` columns are present.
+- The own product developer/author is exactly `Dostonjon Ashurov`.
+- The removed technical explanatory sentences are absent from the main window.
+- The `Bekor qilish` button has visible right-side spacing from the window edge.
+- Build repair completed successfully with 0 warnings and 0 errors before this acceptance test.
 
 ### Current product/UI rules
 - The own product must always display as `Tarjimon Office UZ`.
@@ -48,14 +55,11 @@ A ready-made repair/build script exists at repository root:
 
 When the user needs to run it locally, always provide the exact repository-relative path and, if known from context, the local absolute path. This BAT fetches the correct `Program.cs`, cleans the relevant `bin/obj` folders, finds MSBuild, and builds the combined WiX installer.
 
+### Current acceptance status — PASS
+The latest screenshot satisfies the current Preflight acceptance criteria. Do not change the accepted UI/detection behavior unless the user explicitly requests a new change or a later test exposes a defect.
+
 ### Next acceptance test
-1. Pull the latest commit if needed.
-2. Run the prepared BAT at `FIX_BUILD_AND_BUILD.bat` instead of asking the user to manually clean/build.
-3. If the BAT reports a successful build, launch Preflight.
-4. Verify there is ONE `Tarjimon Office UZ` row, checked by default, with combined host information and usable uninstall information.
-5. Verify `TransLit` remains present and unchecked.
-6. Verify `Igor Pavlov` remains absent.
-7. Verify unrelated Windows/Office components remain absent.
-8. Do not press `Tasdiqlash` until this list is accepted.
+1. Do not press `Tasdiqlash` yet unless the next test specifically concerns the uninstall/installation action.
+2. Continue with the next planned installer acceptance step without changing the accepted Preflight UI/detection behavior.
 
 This file is a continuation checkpoint. The canonical project rules remain the permanent workflow/control document; this checkpoint records the latest operating rules and test state.
