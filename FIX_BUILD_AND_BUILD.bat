@@ -20,7 +20,7 @@ if not exist ".git" (
   exit /b 1
 )
 
-echo [1/3] GitHub'dagi to'g'ri Program.cs olinmoqda...
+echo [1/4] GitHub'dagi to'g'ri Program.cs olinmoqda...
 git fetch origin release/1.0-installer-cleanup
 if errorlevel 1 (
   echo XATO: GitHub'dan yangilash muvaffaqiyatsiz.
@@ -38,14 +38,29 @@ if errorlevel 1 (
 echo OK - Program.cs yangilandi.
 echo.
 
-echo [2/3] Eski build fayllari tozalanmoqda...
+echo [2/4] Installer xavfsizlik va metadata patchi qo'llanmoqda...
+if not exist "PATCH_INSTALLER_SAFETY.ps1" (
+  echo XATO: PATCH_INSTALLER_SAFETY.ps1 topilmadi.
+  pause
+  exit /b 1
+)
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0PATCH_INSTALLER_SAFETY.ps1"
+if errorlevel 1 (
+  echo XATO: Installer patchi qo'llanmadi.
+  pause
+  exit /b 1
+)
+echo OK - Installer patchi qo'llandi.
+echo.
+
+echo [3/4] Eski build fayllari tozalanmoqda...
 if exist "TarjimonOfficeUZ.Setup.Preflight\bin" rmdir /s /q "TarjimonOfficeUZ.Setup.Preflight\bin"
 if exist "TarjimonOfficeUZ.Setup.Preflight\obj" rmdir /s /q "TarjimonOfficeUZ.Setup.Preflight\obj"
 if exist "TarjimonOfficeUZ.Setup.Wix\bin" rmdir /s /q "TarjimonOfficeUZ.Setup.Wix\bin"
 if exist "TarjimonOfficeUZ.Setup.Wix\obj" rmdir /s /q "TarjimonOfficeUZ.Setup.Wix\obj"
 
 echo.
-echo [3/3] Installer build qilinmoqda...
+echo [4/4] Installer build qilinmoqda...
 set "MSBUILD=%ProgramFiles%\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe"
 if not exist "%MSBUILD%" set "MSBUILD=%ProgramFiles%\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe"
 if not exist "%MSBUILD%" (
