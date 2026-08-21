@@ -66,12 +66,12 @@ $new3 = @'
 '@
 if (-not $p.Contains($old3)) { throw 'Program.cs: ExtractMsi block not found.' }
 $p = $p.Replace($old3, $new3)
-Set-Content -LiteralPath $program -Value $p -Encoding UTF8
+[System.IO.File]::WriteAllText($program, $p, (New-Object System.Text.UTF8Encoding($false)))
 
 $w = Get-Content -Raw -LiteralPath $package
 $w2 = $w.Replace('Manufacturer="Tarjimon Office UZ"', 'Manufacturer="Dostonjon Ashurov"')
 if ($w2 -eq $w) { throw 'Package.wxs: Manufacturer field not found.' }
-Set-Content -LiteralPath $package -Value $w2 -Encoding UTF8
+[System.IO.File]::WriteAllText($package, $w2, (New-Object System.Text.UTF8Encoding($false)))
 
 Write-Host 'PATCH OK'
 Write-Host 'MSI now verified before uninstall.'
