@@ -221,3 +221,79 @@ The user's requested workflow is therefore:
 **Assistant implements/automates → GitHub commit/update → user performs only the necessary Git synchronization (Fetch/Pull or Commit/Push as applicable) → automated Build/Test/Verification → assistant evaluates the result.**
 
 If the conversation becomes full, the assistant must create the requested TXT handoff from the accumulated project records before continuing in a new chat, so the workflow and technical history are preserved.
+
+## 20. Release scope and product purpose — 2026-08-21
+
+The immediate goal is to finish the **current release** of Tarjimon Office UZ as quickly and safely as possible. Do not deliberately defer current-release requirements to a later version when they are needed for the current installer to work correctly.
+
+The core purpose of the current installer is:
+
+1. Detect Office translator/add-in software already installed on the Windows computer.
+2. Present the detected translator/add-in products to the user in the Preflight list so the user can decide what to keep and what to remove.
+3. Mark the current Tarjimon Office UZ product as the **own product** and keep it selected by default when an older installation/version of the same product is detected, so the new version can replace/remove the old version through the supported uninstall path.
+4. Do not silently remove third-party translator/add-ins. Third-party items must remain user-controlled and unchecked by default unless the project acceptance criteria explicitly say otherwise.
+5. Detection must be based on reliable Office/add-in evidence and functional signals, not merely on arbitrary Windows program names or publisher names.
+6. The migration list must be safe: unrelated Windows/Office components must not be presented as translators.
+
+### 20.1 Current release versus later-version work
+
+The assistant must prioritize only the work necessary to complete and release the current version. Work explicitly identified in project control documents as a future-version enhancement must not be pulled into the current release unless it is required to satisfy the current acceptance criteria or to prevent a release-blocking defect.
+
+The assistant must not expand scope simply because a technically interesting improvement is possible. Finish the current installer, detection/migration, Word/Excel integration, and required acceptance tests first.
+
+### 20.2 Protected verified/accepted work
+
+Any project component that the project control documents or acceptance history mark as **VERIFIED**, **ACCEPTED**, **99%**, or **100%** is protected from unnecessary modification.
+
+Such components must be treated as frozen unless:
+
+- a confirmed regression is found;
+- a current-release acceptance criterion directly requires a change; or
+- the user explicitly authorizes changing that accepted component.
+
+The assistant must preserve the existing implementation and make the smallest possible change around it rather than reopening or redesigning accepted work.
+
+If a future requirement conflicts with a protected 99–100%/accepted component, the assistant must work around the protected component or defer the future requirement; it must not silently rewrite the accepted component.
+
+### 20.3 Definition of done for the current release
+
+The current release is not considered complete merely because source code compiles. Completion requires the current acceptance criteria to pass, including as applicable:
+
+- one user-facing installer;
+- Word + Excel together;
+- safe Preflight detection/migration list;
+- own-product handling for replacement of an older version;
+- third-party items user-controlled and unchecked by default;
+- no unrelated system false positives;
+- required real Word/Excel acceptance tests;
+- required build/test verification.
+
+Only after those criteria pass may the current release be called release-complete.
+
+### 20.4 Communication rule — only a few mandatory user requests
+
+The assistant should minimize user interruptions. Apart from necessary local/environment actions, the assistant should only routinely ask the user for the following project actions:
+
+1. **Pull** — when the assistant has changed GitHub and the user needs the remote change locally.
+2. **Commit** — when the user has local changes that need to be recorded.
+3. **Push** — when a local commit needs to be sent to GitHub.
+4. **Build/Test or provide a real local acceptance result** — only when the required evidence genuinely cannot be obtained or automated by the assistant/project tooling.
+
+The assistant must not repeatedly ask the user to run arbitrary diagnostic commands, copy commands into PowerShell, or perform manual registry/file checks when those checks can be automated or obtained through the project tooling.
+
+## 21. New-chat handoff requirement
+
+If the conversation reaches a point where continuation in a new chat is necessary, the assistant must prepare a plain-text handoff containing at minimum:
+
+- current release goal and scope;
+- protected 99–100%/verified components;
+- completed history;
+- active conditions;
+- latest commits and their statuses;
+- current blockers;
+- exact next step;
+- Git workflow rules;
+- the four allowed routine user requests;
+- the requirement to use the project control documents before making consequential changes.
+
+The handoff must be based on the actual GitHub/project records and must be ready for use as the starting context of the new chat.
