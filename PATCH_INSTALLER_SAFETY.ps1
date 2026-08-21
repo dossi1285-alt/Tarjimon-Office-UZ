@@ -4,6 +4,21 @@ $program = Join-Path $root 'TarjimonOfficeUZ.Setup.Preflight\Program.cs'
 $package = Join-Path $root 'TarjimonOfficeUZ.Setup.Wix\Package.wxs'
 
 $p = Get-Content -Raw -LiteralPath $program
+
+$old0 = @'
+            first.IsOwnProduct = group.Any(x => x.IsOwnProduct);
+'@
+$new0 = @'
+            first.IsOwnProduct = group.Any(x => x.IsOwnProduct);
+            if (first.IsOwnProduct)
+            {
+                first.Product = "Tarjimon Office UZ";
+                first.Publisher = "Dostonjon Ashurov";
+            }
+'@
+if (-not $p.Contains($old0)) { throw 'Program.cs: own-product normalization point not found.' }
+$p = $p.Replace($old0, $new0)
+
 $old1 = @'
                 var candidates = ScanCandidates();
                 if (candidates.Count > 0)
@@ -74,6 +89,7 @@ if ($w2 -eq $w) { throw 'Package.wxs: Manufacturer field not found.' }
 [System.IO.File]::WriteAllText($package, $w2, (New-Object System.Text.UTF8Encoding($false)))
 
 Write-Host 'PATCH OK'
+Write-Host 'Own product normalized to Tarjimon Office UZ / Dostonjon Ashurov.'
 Write-Host 'MSI now verified before uninstall.'
 Write-Host 'Sidecar MSI fallback added.'
 Write-Host 'MSI Manufacturer set to Dostonjon Ashurov.'
