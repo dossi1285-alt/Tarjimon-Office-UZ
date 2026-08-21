@@ -3,8 +3,8 @@ setlocal EnableExtensions
 cd /d "%~dp0"
 
 echo ===============================================
-echo Tarjimon Office UZ - MSI Build
- echo ===============================================
+echo Tarjimon Office UZ - MSI + Preflight Build
+echo ===============================================
 echo.
 
 where git >nul 2>&1
@@ -20,7 +20,7 @@ if not exist ".git" (
   exit /b 1
 )
 
-echo [1/3] GitHub'dagi installer kodi yangilanmoqda...
+echo [1/5] GitHub'dagi installer kodi yangilanmoqda...
 git fetch origin release/1.0-installer-cleanup
 if errorlevel 1 (
   echo XATO: GitHub'dan yangilash muvaffaqiyatsiz.
@@ -36,16 +36,20 @@ if errorlevel 1 (
 echo OK - Installer kodi yangilandi.
 echo.
 
-echo [2/3] Eski build fayllari tozalanmoqda...
-if exist "TarjimonOfficeUZ.Setup.Wix\bin" rmdir /s /q "TarjimonOfficeUZ.Setup.Wix\bin"
-if exist "TarjimonOfficeUZ.Setup.Wix\obj" rmdir /s /q "TarjimonOfficeUZ.Setup.Wix\obj"
-if exist "TarjimonOfficeUZ.Word\bin" rmdir /s /q "TarjimonOfficeUZ.Word\bin"
-if exist "TarjimonOfficeUZ.Word\obj" rmdir /s /q "TarjimonOfficeUZ.Word\obj"
-if exist "TarjimonOfficeUZ.Excel\bin" rmdir /s /q "TarjimonOfficeUZ.Excel\bin"
-if exist "TarjimonOfficeUZ.Excel\obj" rmdir /s /q "TarjimonOfficeUZ.Excel\obj"
-
+echo [2/5] Eski build fayllari tozalanmoqda...
+for %%D in (
+  "TarjimonOfficeUZ.Setup.Wix\bin"
+  "TarjimonOfficeUZ.Setup.Wix\obj"
+  "TarjimonOfficeUZ.Word\bin"
+  "TarjimonOfficeUZ.Word\obj"
+  "TarjimonOfficeUZ.Excel\bin"
+  "TarjimonOfficeUZ.Excel\obj"
+  "TarjimonOfficeUZ.Setup.Preflight\bin"
+  "TarjimonOfficeUZ.Setup.Preflight\obj"
+) do if exist "%%~D" rmdir /s /q "%%~D"
+echo OK - eski build fayllari tozalandi.
 echo.
-echo [3/3] Mustaqil MSI installer build qilinmoqda...
+
 set "MSBUILD=%ProgramFiles%\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe"
 if not exist "%MSBUILD%" set "MSBUILD=%ProgramFiles%\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe"
 if not exist "%MSBUILD%" (
@@ -54,29 +58,67 @@ if not exist "%MSBUILD%" (
   exit /b 1
 )
 
+echo [3/5] Mustaqil MSI installer build qilinmoqda...
 "%MSBUILD%" "TarjimonOfficeUZ.Setup.Wix\TarjimonOfficeUZ.Setup.Wix.wixproj" /t:Build /p:Configuration=Debug /m
 set "RC=%ERRORLEVEL%"
 if not "%RC%"=="0" goto BUILD_ERROR
 
-set "MSI=TarjimonOfficeUZ.Setup.Wix\bin\Debug\TarjimonOfficeUZ.msi"
+set "MSI=%CD%\TarjimonOfficeUZ.Setup.Wix\bin\Debug\TarjimonOfficeUZ.msi"
 if not exist "%MSI%" (
   echo XATO: MSI build natijasi topilmadi: %MSI%
   set "RC=2"
   goto BUILD_ERROR
 )
 
-copy /y "%MSI%" "%~dp0Tarjimon Office UZ.msi" >nul
+copy /y "%MSI%" "%CD%\Tarjimon Office UZ.msi" >nul
 if errorlevel 1 (
   echo XATO: MSI loyiha papkasidan asosiy papkaga nusxalanmadi.
   set "RC=3"
+  goto BUILD_ERROR
+)
+echo OK - MSI tayyor.
+echo.
+
+echo [4/5] Preflight launcher MSI bilan birga build qilinmoqda...
+"%MSBUILD%" "TarjimonOfficeUZ.Setup.Preflight\TarjimonOfficeUZ.Setup.Preflight.csproj" /t:Build /p:Configuration=Debug /p:MsiSource="%MSI%" /m
+set "RC=%ERRORLEVEL%"
+if not "%RC%"=="0" goto BUILD_ERROR
+
+set "PREFLIGHT=%CD%\TarjimonOfficeUZ.Setup.Preflight\bin\Debug\net48\TarjimonOfficeUZSetup.exe"
+if not exist "%PREFLIGHT%" (
+  echo XATO: Preflight launcher build natijasi topilmadi: %PREFLIGHT%
+  set "RC=4"
+  goto BUILD_ERROR
+)
+
+copy /y "%PREFLIGHT%" "%CD%\TarjimonOfficeUZSetup.exe" >nul
+if errorlevel 1 (
+  echo XATO: Preflight launcher asosiy papkaga nusxalanmadi.
+  set "RC=5"
+  goto BUILD_ERROR
+)
+echo OK - Yakuniy Setup EXE tayyor va MSI ichiga joylandi.
+echo.
+
+echo [5/5] Yakuniy fayllar tekshirilmoqda...
+if not exist "%CD%\Tarjimon Office UZ.msi" (
+  echo XATO: Yakuniy MSI topilmadi.
+  set "RC=6"
+  goto BUILD_ERROR
+)
+if not exist "%CD%\TarjimonOfficeUZSetup.exe" (
+  echo XATO: Yakuniy Setup EXE topilmadi.
+  set "RC=7"
   goto BUILD_ERROR
 )
 
 echo.
 echo ===============================================
 echo BUILD MUVAFFAQIYATLI YAKUNLANDI.
-echo MSI tayyor:
+echo MSI:
 echo D:\Tarjimon-Office-UZ\Tarjimon Office UZ.msi
+echo FINAL SETUP:
+echo D:\Tarjimon-Office-UZ\TarjimonOfficeUZSetup.exe
 echo ===============================================
 pause
 exit /b 0
