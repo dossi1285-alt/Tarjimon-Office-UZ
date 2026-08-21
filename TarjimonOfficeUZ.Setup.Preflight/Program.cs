@@ -578,7 +578,7 @@ namespace TarjimonOfficeUZ.Setup.Preflight
             var confirm = new Button { Text = "Tasdiqlash", Width = 135, Height = 34, DialogResult = DialogResult.OK, Anchor = AnchorStyles.Top | AnchorStyles.Right };
             confirm.BackColor = Color.FromArgb(25, 105, 190); confirm.ForeColor = Color.White; confirm.FlatStyle = FlatStyle.Flat; confirm.FlatAppearance.BorderSize = 0;
             cancel.FlatStyle = FlatStyle.Flat; cancel.FlatAppearance.BorderColor = Color.FromArgb(205, 210, 218);
-            Action layoutButtons = () => { cancel.Left = panel.ClientSize.Width - cancel.Width; confirm.Left = cancel.Left - confirm.Width - 10; cancel.Top = 7; confirm.Top = 7; };
+            Action layoutButtons = () => { cancel.Left = panel.ClientSize.Width - cancel.Width - 10; confirm.Left = cancel.Left - confirm.Width - 10; cancel.Top = 7; confirm.Top = 7; };
             panel.Resize += (s, e) => layoutButtons(); panel.Controls.Add(cancel); panel.Controls.Add(confirm); layoutButtons();
 
             Controls.Add(list); Controls.Add(header); Controls.Add(productCard); Controls.Add(panel);
