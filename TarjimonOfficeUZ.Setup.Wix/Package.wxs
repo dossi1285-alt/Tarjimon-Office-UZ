@@ -2,7 +2,7 @@
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
   <Package
       Name="Tarjimon Office UZ"
-      Manufacturer="Tarjimon Office UZ"
+      Manufacturer="Dostonjon Ashurov"
       Version="$(ProductVersion)"
       UpgradeCode="6B7A9F1C-6B2A-4C8D-9F5E-1D6B6A9C7E21">
 
@@ -16,19 +16,10 @@
       </Directory>
     </StandardDirectory>
 
-    <!-- Separate 32-bit registry component directory. This directory is
-         intentionally under ProgramFilesFolder so Bitness="always32"
-         components do not use a 64-bit directory. -->
     <StandardDirectory Id="ProgramFilesFolder">
       <Directory Id="REG32DIR" Name="Tarjimon Office UZ Registry" />
     </StandardDirectory>
 
-    <!--
-      The Word and Excel project references create WiX bind paths and also
-      enforce the build order. Files are harvested from the actual project
-      output directories, so the MSI contains the same binaries/manifests
-      that were just built.
-    -->
     <Files Include="!(bindpath.TarjimonOfficeUZ.Word)\**" Directory="WORDDIR">
       <Exclude Files="!(bindpath.TarjimonOfficeUZ.Word)\**\*.pdb" />
     </Files>
@@ -37,9 +28,6 @@
       <Exclude Files="!(bindpath.TarjimonOfficeUZ.Excel)\**\*.pdb" />
     </Files>
 
-    <!-- VSTO registration for Word. The Manifest value deliberately uses
-         the installed directory path instead of a cross-component [#FileId]
-         reference, avoiding ICE69 while still producing the VSTO manifest URL. -->
     <Component Id="WordAddinRegistration64" Directory="WORDDIR">
       <RegistryKey Root="HKLM" Key="Software\Microsoft\Office\Word\Addins\TarjimonOfficeUZ.Word">
         <RegistryValue Name="Description" Type="string" Value="Tarjimon Office UZ Word add-in" />
@@ -58,7 +46,6 @@
       </RegistryKey>
     </Component>
 
-    <!-- VSTO registration for Excel. -->
     <Component Id="ExcelAddinRegistration64" Directory="EXCELDIR">
       <RegistryKey Root="HKLM" Key="Software\Microsoft\Office\Excel\Addins\TarjimonOfficeUZ.Excel">
         <RegistryValue Name="Description" Type="string" Value="Tarjimon Office UZ Excel add-in" />
