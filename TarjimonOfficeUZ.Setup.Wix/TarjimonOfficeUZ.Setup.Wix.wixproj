@@ -1,0 +1,25 @@
+<Project Sdk="WixToolset.Sdk/7.0.0">
+  <PropertyGroup>
+    <OutputName>TarjimonOfficeUZ.Setup</OutputName>
+    <InstallerPlatform>x64</InstallerPlatform>
+    <DefineConstants>$(DefineConstants);ProductVersion=1.0.0</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TarjimonOfficeUZ.Word\TarjimonOfficeUZ.Word.csproj" />
+    <ProjectReference Include="..\TarjimonOfficeUZ.Excel\TarjimonOfficeUZ.Excel.csproj" />
+  </ItemGroup>
+
+  <!-- Build the combined MSI first, then restore and build the single-file
+       preflight launcher with that MSI embedded. The launcher performs
+       migration review before Windows Installer starts, avoiding nested MSI actions. -->
+  <Target Name="BuildSingleInstallerLauncher" AfterTargets="Build">
+    <MSBuild
+      Projects="$(MSBuildProjectDirectory)\..\TarjimonOfficeUZ.Setup.Preflight\TarjimonOfficeUZ.Setup.Preflight.csproj"
+      Properties="Configuration=$(Configuration);Platform=AnyCPU;MsiSource=$(TargetPath)"
+      Targets="Restore;Build" />
+    <Copy
+      SourceFiles="$(MSBuildProjectDirectory)\..\TarjimonOfficeUZ.Setup.Preflight\bin\$(Configuration)\net48\TarjimonOfficeUZSetup.exe"
+      DestinationFolder="$(OutputPath)" />
+  </Target>
+</Project>

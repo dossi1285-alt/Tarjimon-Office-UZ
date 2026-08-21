@@ -1,0 +1,24 @@
+name: Preflight Build
+
+on:
+  push:
+    branches:
+      - release/1.0-installer-cleanup
+  pull_request:
+    branches:
+      - release/1.0-installer-cleanup
+  workflow_dispatch:
+
+jobs:
+  build-preflight:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Build Preflight
+        run: msbuild TarjimonOfficeUZ.Setup.Preflight/TarjimonOfficeUZ.Setup.Preflight.csproj /restore /t:Build /p:Configuration=Debug /p:Platform=x64
