@@ -269,7 +269,9 @@ namespace TarjimonOfficeUZ.Setup.Preflight
                         {
                             if (key == null) continue;
                             var display = Convert.ToString(key.GetValue(null)) ?? string.Empty;
-                            var progId = Convert.ToString(key.OpenSubKey("ProgID") == null ? null : key.OpenSubKey("ProgID").GetValue(null)) ?? string.Empty;
+                            var progKey = key.OpenSubKey("ProgID");
+                            var progId = Convert.ToString(progKey == null ? null : progKey.GetValue(null)) ?? string.Empty;
+                            if (progKey != null) progKey.Dispose();
                             var text = NormalizeSearchText(display, progId, clsid);
                             using (var inproc = key.OpenSubKey("InprocServer32")) text += " " + Convert.ToString(inproc == null ? null : inproc.GetValue(null));
                             using (var local = key.OpenSubKey("LocalServer32")) text += " " + Convert.ToString(local == null ? null : local.GetValue(null));
@@ -297,7 +299,13 @@ namespace TarjimonOfficeUZ.Setup.Preflight
         {
             var code = ExtractProductCode(item.UninstallString);
             if (!string.IsNullOrWhiteSpace(code)) return "MSI:" + code;
-            return "APP:" + NormalizeIdentity(item.Product) + "|" + NormalizeIdentity(item.Publisher) + "|" + NormalizeIdentity(item.Version);
+
+            if (item.IsOwnProduct) return "OWN:tarjimon-office-uz";
+
+            var product = NormalizeIdentity(item.Product);
+            var publisher = NormalizeIdentity(item.Publisher);
+            if (!string.IsNullOrWhiteSpace(publisher)) return "APP:" + product + "|" + publisher;
+            return "APP:" + product;
         }
 
         private static string ExtractProductCode(string commandLine)
@@ -309,7 +317,12 @@ namespace TarjimonOfficeUZ.Setup.Preflight
 
         private static string NormalizeIdentity(string value)
         {
-            return Regex.Replace((value ?? string.Empty).Trim().ToLowerInvariant(), @"\s+", " ");
+            var normalized = Regex.Replace((value ?? string.Empty).Trim().ToLowerInvariant(), @"\s+", " ");
+            normalized = normalized.Replace("_", " ").Replace("-", " ");
+            normalized = Regex.Replace(normalized, @"[\\./]+", " ");
+            normalized = Regex.Replace(normalized, @"\s+(word|excel)$", "");
+            normalized = Regex.Replace(normalized, @"\s+uz$", " uz");
+            return normalized.Trim();
         }
 
         private static string FindUninstall(string friendly, string keyName, out string publisher, out string version)
@@ -384,8 +397,9 @@ namespace TarjimonOfficeUZ.Setup.Preflight
         public ReviewForm(List<AddinCandidate> candidates)
         {
             Text = "Tarjimon Office UZ — mavjud Office tarjimonlari";
-            Width = 760; Height = 420; StartPosition = FormStartPosition.CenterScreen;
-            MinimizeBox = false; MaximizeBox = false; FormBorderStyle = FormBorderStyle.FixedDialog;
+            Width = 760; Height = 420; MinimumSize = new Size(620, 360);
+            StartPosition = FormStartPosition.CenterScreen;
+            MinimizeBox = false; MaximizeBox = true; FormBorderStyle = FormBorderStyle.Sizable;
             Font = new Font("Segoe UI", 9F);
 
             var title = new Label
@@ -417,11 +431,23 @@ namespace TarjimonOfficeUZ.Setup.Preflight
             var panel = new Panel { Dock = DockStyle.Bottom, Height = 54, Padding = new Padding(8, 5, 8, 7) };
             var cancel = new Button { Text = "Bekor qilish", Width = 120, Height = 34, DialogResult = DialogResult.Cancel, Anchor = AnchorStyles.Top | AnchorStyles.Right };
             var confirm = new Button { Text = "Tasdiqlash", Width = 135, Height = 34, DialogResult = DialogResult.OK, Anchor = AnchorStyles.Top | AnchorStyles.Right };
-            Action layout = () => { cancel.Left = panel.ClientSize.Width - cancel.Width; confirm.Left = cancel.Left - confirm.Width - 8; cancel.Top = 5; confirm.Top = 5; };
-            panel.Resize += (s, e) => layout(); panel.Controls.Add(cancel); panel.Controls.Add(confirm); layout();
-            list.Location = new Point(16, 100); list.Size = new Size(712, 200); list.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            Action layoutButtons = () => { cancel.Left = panel.ClientSize.Width - cancel.Width; confirm.Left = cancel.Left - confirm.Width - 8; cancel.Top = 5; confirm.Top = 5; };
+            panel.Resize += (s, e) => layoutButtons(); panel.Controls.Add(cancel); panel.Controls.Add(confirm); layoutButtons();
+
             Controls.Add(list); Controls.Add(title); Controls.Add(info); Controls.Add(panel);
+            Resize += (s, e) => LayoutList();
+            LayoutList();
             AcceptButton = confirm; CancelButton = cancel;
+
+            void LayoutList()
+            {
+                var bottomReserved = info.Height + panel.Height;
+                var top = title.Height;
+                list.Left = 16;
+                list.Top = top + 24;
+                list.Width = Math.Max(200, ClientSize.Width - 32);
+                list.Height = Math.Max(80, ClientSize.Height - list.Top - bottomReserved - 8);
+            }
         }
     }
 }
