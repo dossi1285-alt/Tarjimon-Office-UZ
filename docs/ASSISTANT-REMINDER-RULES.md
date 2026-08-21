@@ -21,115 +21,74 @@ Do not record a result as successful merely because a build command completed if
 
 ### 2. Update the reminder after every positive result
 
-Every independently confirmed positive result must be added to the project history/reminder, even when the change is small. This includes, for example:
-
-- successful build;
-- successful installer generation;
-- successful detection test;
-- successful UI correction;
-- successful uninstall/migration test;
-- successful Word test;
-- successful Excel test;
-- successful UndoBridge test;
-- successful signing/trust verification;
-- successful regression test;
-- successful synchronization or release step.
+Every independently confirmed positive result must be added to the project history/reminder, even when the change is small. This includes, for example: successful build, installer generation, detection test, UI correction, uninstall/migration test, Word test, Excel test, UndoBridge test, signing/trust verification, regression test, synchronization, or release step.
 
 The assistant must preserve cumulative history rather than replacing earlier successful results.
 
 ### 3. User notification is mandatory
 
-Whenever the assistant updates the project's reminder/continuation memory because of a confirmed result, the assistant must explicitly tell the user that the reminder was updated.
-
-The notification must also state what was added or changed. It should be concise but concrete, for example:
-
-> **Eslatma yangilandi.**
-> - Muvaffaqiyatli natija: ...
-> - Eslatmaga qo'shildi: ...
-> - Keyingi qadam: ...
-
-Do not merely say "saved" without explaining what was recorded.
+Whenever the assistant updates the project's reminder/continuation memory because of a confirmed result, the assistant must explicitly tell the user that the reminder was updated and state what was added or changed.
 
 ### 4. Verification before recording success
 
-The assistant must distinguish between:
-
-- **implemented** — source change exists;
-- **built** — build completed successfully;
-- **tested** — the relevant behavior was actually tested;
-- **verified** — the assistant has enough evidence to confirm the expected result;
-- **release-complete** — all project acceptance criteria are satisfied.
-
-Only use the strongest status that the evidence supports. Never mark the 1.0 release complete from a partial build or isolated component test.
+The assistant must distinguish between implemented, built, tested, verified, and release-complete. Only use the strongest status supported by evidence. Never mark the 1.0 release complete from a partial build or isolated component test.
 
 ### 5. Completed-condition removal rule
 
-The reminder contains active conditions/tasks that still need to be satisfied. Once the assistant independently verifies that one of those conditions has been fully satisfied according to its acceptance criteria, the assistant must:
-
-1. Mark that condition as **COMPLETED** in the project history.
-2. Remove it from the active conditions/tasks list so it is no longer presented as an outstanding task.
-3. Preserve the completed item in the cumulative history so the project does not lose the record of what was accomplished.
-4. Explicitly notify the user that the condition was removed from the active list and state exactly what was verified as complete.
-5. Record the next remaining active condition/task.
-
-A condition must NOT be removed merely because source code was changed or a build succeeded. It is removed only after the acceptance test for that condition is actually verified.
+Once the assistant independently verifies that an active condition has been fully satisfied according to its acceptance criteria, it must mark it COMPLETED in history, remove it from the active conditions/tasks list, preserve the completed history, notify the user, and record the next remaining active condition. A condition must not be removed merely because source code was changed or a build succeeded.
 
 ### 6. Next-step continuity
 
-After recording a successful result, the reminder must preserve the next action so a future session can continue without making the user repeat the plan.
-
-For installer work, this must remain consistent with `PROJECT_RULES.md`:
-
-- ONE user-facing setup;
-- Word + Excel together;
-- Preflight migration/consent;
-- no silent third-party add-in removal;
-- real Word/Excel tests before release freeze.
+After each recorded result, preserve the next action. Installer rules remain: ONE user-facing setup; Word + Excel together; Preflight migration/consent; no silent third-party add-in removal; real Word/Excel tests before release freeze.
 
 ### 7. GitHub workflow — mandatory user notification and step tracking
 
-GitHub is part of the project's working procedure, not merely a backup.
+GitHub is part of the working procedure. Whenever the assistant creates or updates project files directly on GitHub, the assistant must record that change and explicitly tell the user.
 
-Whenever the assistant creates or updates project files directly on GitHub, the assistant must record that change in the reminder notes and explicitly tell the user that a GitHub change was made.
-
-The reminder must identify the required synchronization action for the user's local machine:
-
-1. **Fetch origin** — refresh remote information in GitHub Desktop; use this when checking whether new remote commits exist.
-2. **Pull origin** — download/apply the remote commits to the local repository after the assistant has made a remote change.
-3. **Build/Test locally** — after Pull, rebuild the affected project(s) and run the relevant test before treating the remote change as locally verified.
-4. **Commit** — when the user has made local changes that should be recorded.
-5. **Push origin** — upload the user's local commit(s) to GitHub after committing.
-
-For assistant-made GitHub changes, the default user-side sequence is:
+User-side synchronization for assistant-made GitHub changes:
 
 **Fetch origin → Pull origin → Build → Test.**
 
-If the user makes a local change after Pull, the continuation becomes:
+If the user makes local changes:
 
 **Commit → Push origin → Fetch/Pull as needed → Build → Test.**
 
-The assistant must not tell the user to Push an assistant-made remote commit merely to receive it locally; the correct action is normally **Pull origin**.
+The assistant must not tell the user to Push an assistant-made remote commit merely to receive it locally; normally the correct action is Pull origin.
 
-Whenever a GitHub change is made, the user notification must include:
-
-- what file/project was changed;
-- the commit SHA when available;
-- what the user needs to do next (`Fetch origin`, `Pull origin`, `Build`, `Test`, or `Commit/Push` as applicable);
-- what result will confirm that synchronization/build/test succeeded.
+Every GitHub-change notification must state the changed file/project, commit SHA when available, the user's next action, and the result that will confirm success.
 
 ### 8. Current immediate continuation
 
-As of 2026-08-20, the Preflight detection/UI work has produced a successful partial result: duplicate handling and the own-product detection flow were improved and the user confirmed the updated dialog is working better. However, the user's Word screenshot still shows `KL Office uz`, which has not yet been confirmed as detected by the current scanner.
+The previous detection test was NOT successful: the user's Word screenshot showed `KL Office uz`, while the Preflight list did not show it. The own-product row was detected, but extra `TarjimonOfficeUZ.Excel` and `TarjimonOfficeUZ.Word` rows also appeared with unknown publisher.
 
-Next required action:
+### 9. Latest implementation status — KL Office detection
 
-1. Extend/verify detection for `KL Office uz` and other relevant Office add-in loading mechanisms without switching to an unsafe "delete every ribbon add-in" approach.
-2. Rebuild the Preflight and combined installer.
-3. Test the detection list visually before pressing `Tasdiqlash` for destructive migration.
-4. Only after detection passes, continue with controlled uninstall/reinstall and Word + Excel verification.
+Source implementation completed on GitHub, but NOT YET VERIFIED by a local build/test.
 
-### 9. GitHub as canonical project memory
+Commit: `b92a44c0dda7574f156b7ac9bce0321dc1cb8ef2`.
 
-This file is part of the project's continuation memory. GitHub repository `dossi1285-alt/Tarjimon-Office-UZ`, active branch `release/1.0-installer-cleanup`, remains the canonical project source/history according to `PROJECT_RULES.md`.
+Changes in `TarjimonOfficeUZ.Setup.Preflight/Program.cs`:
+
+- expanded translator/add-in keyword detection, including `KL Office`, `KLOffice`, `KL_Office`, `Kirill`, and related terms;
+- expanded Word/Excel startup-path discovery across Office-version registry paths;
+- added common Office16 startup locations under Program Files/Program Files (x86);
+- expanded startup-file metadata inspection;
+- added CLSID/COM registration scanning for translator-related names and server paths;
+- retained duplicate grouping and the rule that third-party add-ins are not selected automatically.
+
+Because this is only an implementation change, the active condition remains:
+
+1. Pull the new GitHub commit.
+2. Build `TarjimonOfficeUZ.Setup.Preflight`.
+3. Build `TarjimonOfficeUZ.Setup.Wix`.
+4. Launch the combined installer and inspect the detection list.
+5. Confirm whether `KL Office uz` now appears and whether the unwanted duplicate own-product rows are gone.
+6. Do NOT press `Tasdiqlash` until the detection result is accepted.
+
+Only after that real test passes may the `KL Office detection` condition be removed from the active list.
+
+### 10. GitHub as canonical project memory
+
+This file is part of the project's continuation memory. GitHub repository `dossi1285-alt/Tarjimon-Office-UZ`, active branch `release/1.0-installer-cleanup`, remains the canonical project source/history.
 
 When a new confirmed project result is obtained, append/update the relevant continuation record rather than relying only on the chat transcript.
