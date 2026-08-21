@@ -17,13 +17,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '8.0.x'
-
-      - name: Restore Preflight
-        run: dotnet restore TarjimonOfficeUZ.Setup.Preflight/TarjimonOfficeUZ.Setup.Preflight.csproj
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
 
       - name: Build Preflight
-        run: dotnet build TarjimonOfficeUZ.Setup.Preflight/TarjimonOfficeUZ.Setup.Preflight.csproj --configuration Debug --no-restore
+        run: msbuild TarjimonOfficeUZ.Setup.Preflight/TarjimonOfficeUZ.Setup.Preflight.csproj /restore /t:Build /p:Configuration=Debug /p:Platform=x64
