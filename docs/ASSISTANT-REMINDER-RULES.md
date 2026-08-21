@@ -62,7 +62,19 @@ The assistant must distinguish between:
 
 Only use the strongest status that the evidence supports. Never mark the 1.0 release complete from a partial build or isolated component test.
 
-### 5. Next-step continuity
+### 5. Completed-condition removal rule
+
+The reminder contains active conditions/tasks that still need to be satisfied. Once the assistant independently verifies that one of those conditions has been fully satisfied according to its acceptance criteria, the assistant must:
+
+1. Mark that condition as **COMPLETED** in the project history.
+2. Remove it from the active conditions/tasks list so it is no longer presented as an outstanding task.
+3. Preserve the completed item in the cumulative history so the project does not lose the record of what was accomplished.
+4. Explicitly notify the user that the condition was removed from the active list and state exactly what was verified as complete.
+5. Record the next remaining active condition/task.
+
+A condition must NOT be removed merely because source code was changed or a build succeeded. It is removed only after the acceptance test for that condition is actually verified.
+
+### 6. Next-step continuity
 
 After recording a successful result, the reminder must preserve the next action so a future session can continue without making the user repeat the plan.
 
@@ -74,7 +86,7 @@ For installer work, this must remain consistent with `PROJECT_RULES.md`:
 - no silent third-party add-in removal;
 - real Word/Excel tests before release freeze.
 
-### 6. GitHub workflow — mandatory user notification and step tracking
+### 7. GitHub workflow — mandatory user notification and step tracking
 
 GitHub is part of the project's working procedure, not merely a backup.
 
@@ -105,7 +117,7 @@ Whenever a GitHub change is made, the user notification must include:
 - what the user needs to do next (`Fetch origin`, `Pull origin`, `Build`, `Test`, or `Commit/Push` as applicable);
 - what result will confirm that synchronization/build/test succeeded.
 
-### 7. Current immediate continuation
+### 8. Current immediate continuation
 
 As of 2026-08-20, the Preflight detection/UI work has produced a successful partial result: duplicate handling and the own-product detection flow were improved and the user confirmed the updated dialog is working better. However, the user's Word screenshot still shows `KL Office uz`, which has not yet been confirmed as detected by the current scanner.
 
@@ -116,7 +128,7 @@ Next required action:
 3. Test the detection list visually before pressing `Tasdiqlash` for destructive migration.
 4. Only after detection passes, continue with controlled uninstall/reinstall and Word + Excel verification.
 
-### 8. GitHub as canonical project memory
+### 9. GitHub as canonical project memory
 
 This file is part of the project's continuation memory. GitHub repository `dossi1285-alt/Tarjimon-Office-UZ`, active branch `release/1.0-installer-cleanup`, remains the canonical project source/history according to `PROJECT_RULES.md`.
 
