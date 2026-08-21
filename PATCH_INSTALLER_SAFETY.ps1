@@ -16,8 +16,8 @@ $new0 = @'
                 first.Publisher = "Dostonjon Ashurov";
             }
 '@
-if (-not $p.Contains($old0)) { throw 'Program.cs: own-product normalization point not found.' }
-$p = $p.Replace($old0, $new0)
+if (-not $p.Contains($old0) -and -not $p.Contains($new0)) { throw 'Program.cs: own-product normalization point not found.' }
+if ($p.Contains($old0)) { $p = $p.Replace($old0, $new0) }
 
 $old1 = @'
                 var candidates = ScanCandidates();
@@ -29,8 +29,8 @@ $new1 = @'
                 var candidates = ScanCandidates();
                 if (candidates.Count > 0)
 '@
-if (-not $p.Contains($old1)) { throw 'Program.cs: Main safety insertion point not found.' }
-$p = $p.Replace($old1, $new1)
+if (-not $p.Contains($old1) -and -not $p.Contains($new1)) { throw 'Program.cs: Main safety insertion point not found.' }
+if ($p.Contains($old1)) { $p = $p.Replace($old1, $new1) }
 
 $old2 = @'
                 var msi = ExtractMsi();
@@ -39,8 +39,7 @@ $old2 = @'
 $new2 = @'
                 var result = Process.Start(new ProcessStartInfo
 '@
-if (-not $p.Contains($old2)) { throw 'Program.cs: duplicate MSI extraction point not found.' }
-$p = $p.Replace($old2, $new2)
+if ($p.Contains($old2)) { $p = $p.Replace($old2, $new2) }
 
 $old3 = @'
         private static string ExtractMsi()
@@ -79,17 +78,27 @@ $new3 = @'
             return path;
         }
 '@
-if (-not $p.Contains($old3)) { throw 'Program.cs: ExtractMsi block not found.' }
-$p = $p.Replace($old3, $new3)
+if (-not $p.Contains($old3) -and -not $p.Contains($new3)) { throw 'Program.cs: ExtractMsi block not found.' }
+if ($p.Contains($old3)) { $p = $p.Replace($old3, $new3) }
 [System.IO.File]::WriteAllText($program, $p, (New-Object System.Text.UTF8Encoding($false)))
 
 $w = Get-Content -Raw -LiteralPath $package
-$w2 = $w.Replace('Manufacturer="Tarjimon Office UZ"', 'Manufacturer="Dostonjon Ashurov"')
-if ($w2 -eq $w) { throw 'Package.wxs: Manufacturer field not found.' }
-[System.IO.File]::WriteAllText($package, $w2, (New-Object System.Text.UTF8Encoding($false)))
+$targetManufacturer = 'Manufacturer="Dostonjon Ashurov"'
+$legacyManufacturer = 'Manufacturer="Tarjimon Office UZ"'
+if ($w.Contains($targetManufacturer)) {
+    $w2 = $w
+}
+elseif ($w.Contains($legacyManufacturer)) {
+    $w2 = $w.Replace($legacyManufacturer, $targetManufacturer)
+}
+else {
+    throw 'Package.wxs: Manufacturer field not found.'
+}
+if ($w2 -ne $w) { [System.IO.File]::WriteAllText($package, $w2, (New-Object System.Text.UTF8Encoding($false))) }
 
 Write-Host 'PATCH OK'
 Write-Host 'Own product normalized to Tarjimon Office UZ / Dostonjon Ashurov.'
 Write-Host 'MSI now verified before uninstall.'
 Write-Host 'Sidecar MSI fallback added.'
 Write-Host 'MSI Manufacturer set to Dostonjon Ashurov.'
+Write-Host 'Patch is idempotent.'
