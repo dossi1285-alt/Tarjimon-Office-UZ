@@ -26,9 +26,8 @@ namespace TarjimonOfficeUZ.Setup.Preflight
     internal static class Program
     {
         // Functional signals, not a hard-coded list of translator product names.
-        // "translit" is deliberately only a weak signal; Office registration/metadata
-        // provides the important evidence. A publisher such as Igor Pavlov alone
-        // can never make a product a translator candidate.
+        // Generic words such as "language" are deliberately absent. A publisher
+        // such as Igor Pavlov alone can never make a product a translator candidate.
         private static readonly string[] FunctionWords =
         {
             "translit", "transliteration", "transliterator", "translator", "translation",
@@ -95,6 +94,9 @@ namespace TarjimonOfficeUZ.Setup.Preflight
                 ? new[] { RegistryView.Registry64, RegistryView.Registry32 }
                 : new[] { RegistryView.Default };
 
+            // Office-specific registration and Office startup files are the primary sources.
+            // We deliberately do not launch Word/Excel here because doing so could execute
+            // third-party startup macros/add-ins during installation.
             ScanOfficeAddins(discovered, views);
             ScanWordStartup(discovered);
             ScanExcelStartup(discovered);
@@ -103,7 +105,7 @@ namespace TarjimonOfficeUZ.Setup.Preflight
             return discovered
                 .GroupBy(BuildProductIdentity, StringComparer.OrdinalIgnoreCase)
                 .Select(MergeCandidate)
-                .Where(x => x.Score >= 30)
+                .Where(x => x.IsOwnProduct || x.Score >= 30)
                 .OrderByDescending(x => x.IsOwnProduct)
                 .ThenByDescending(x => x.Score)
                 .ThenBy(x => x.Product)
@@ -168,24 +170,38 @@ namespace TarjimonOfficeUZ.Setup.Preflight
                     var url = Convert.ToString(key.GetValue("URLInfoAbout")) ?? string.Empty;
                     var text = NormalizeSearchText(name, display, publisher, installLocation, displayIcon, url);
                     var semantic = ScoreSemantic(text);
-                    if (semantic <= 0) continue;
+                    var own = IsOwnProduct(text, publisher);
+                    var officeAssociation = ContainsOfficeAssociation(installLocation, displayIcon, url);
+                    var functionalFileEvidence = FindFunctionalFileEvidence(installLocation);
 
-                    var score = semantic + 15;
-                    if (ContainsOfficeAssociation(installLocation, displayIcon, url)) score += 20;
-                    if (ContainsOfficeFile(displayIcon, installLocation)) score += 5;
-                    if (score < 30) continue;
+                    // Windows Uninstall is not an Office-add-in source by itself.
+                    // Third-party products enter the migration list only when the uninstall
+                    // record is tied to Office evidence or an Office-like functional file.
+                    if (!own && semantic <= 0 && string.IsNullOrWhiteSpace(functionalFileEvidence)) continue;
+                    if (!own && !officeAssociation && string.IsNullOrWhiteSpace(functionalFileEvidence)) continue;
+
+                    var score = own ? Math.Max(semantic + 15, 90) : semantic + 15;
+                    if (officeAssociation) score += 20;
+                    if (!string.IsNullOrWhiteSpace(functionalFileEvidence)) score += 25;
+                    if (score < 30 && !own) continue;
+
+                    var evidence = "Windows Uninstall registry";
+                    if (officeAssociation) evidence += "; Office bilan bog'liq yo'l/metadata";
+                    if (!string.IsNullOrWhiteSpace(functionalFileEvidence)) evidence += "; funksional fayl dalili: " + functionalFileEvidence;
+                    if (own) evidence += "; Tarjimon Office UZ own-product identity";
+                    else evidence += "; funksional metadata: " + BuildSemanticEvidence(text);
 
                     list.Add(new AddinCandidate
                     {
                         Product = display,
                         Publisher = publisher,
                         Version = version,
-                        Host = ContainsOfficeAssociation(installLocation, displayIcon, url) ? "Office/Windows" : "Windows",
+                        Host = officeAssociation ? "Office/Windows" : "Windows",
                         Registration = hive + "\\" + view + "\\Uninstall\\" + name,
                         UninstallString = uninstall,
-                        IsOwnProduct = IsOwnProduct(text, publisher),
-                        Score = score,
-                        Evidence = "Windows Uninstall registry; funksional metadata: " + BuildSemanticEvidence(text)
+                        IsOwnProduct = own,
+                        Score = Math.Min(score, 100),
+                        Evidence = evidence
                     });
                 }
             }
@@ -196,14 +212,36 @@ namespace TarjimonOfficeUZ.Setup.Preflight
             var text = NormalizeSearchText(values);
             return text.Contains("microsoft office") || text.Contains("office\\") || text.Contains("\\office") ||
                    text.Contains("microsoft\\word") || text.Contains("microsoft\\excel") || text.Contains("\\word\\") ||
-                   text.Contains("\\excel\\") || text.Contains("addin") || text.Contains("addins") || text.Contains("startup");
+                   text.Contains("\\excel\\") || text.Contains("startup") || text.Contains("xlstart") ||
+                   text.Contains("\\addins\\") || text.Contains("\\addin\\");
         }
 
-        private static bool ContainsOfficeFile(string icon, string installLocation)
+        private static string FindFunctionalFileEvidence(string installLocation)
         {
-            var text = NormalizeSearchText(icon, installLocation);
-            return text.Contains(".dot") || text.Contains(".dotm") || text.Contains(".wll") || text.Contains(".xla") ||
-                   text.Contains(".xlam") || text.Contains(".xll") || text.Contains(".vsto") || text.Contains(".dll");
+            if (string.IsNullOrWhiteSpace(installLocation) || !Directory.Exists(installLocation)) return string.Empty;
+            try
+            {
+                var files = new List<string>(Directory.GetFiles(installLocation));
+                foreach (var subdir in Directory.GetDirectories(installLocation).Take(12))
+                {
+                    try { files.AddRange(Directory.GetFiles(subdir)); } catch { }
+                    if (files.Count >= 240) break;
+                }
+
+                var hits = new List<string>();
+                foreach (var file in files.Take(240))
+                {
+                    var extension = Path.GetExtension(file) ?? string.Empty;
+                    if (!new[] { ".dot", ".dotm", ".dotx", ".wll", ".xla", ".xlam", ".xll", ".dll", ".exe", ".vsto", ".xml" }.Contains(extension, StringComparer.OrdinalIgnoreCase)) continue;
+                    var text = NormalizeSearchText(Path.GetFileName(file), ReadFileMetadata(file));
+                    var semantic = ScoreSemantic(text);
+                    if (semantic <= 0) continue;
+                    hits.Add(Path.GetFileName(file) + " [" + BuildSemanticEvidence(text) + "]");
+                    if (hits.Count >= 3) break;
+                }
+                return string.Join(", ", hits);
+            }
+            catch { return string.Empty; }
         }
 
         private static int ScoreSemantic(string text)
@@ -241,7 +279,7 @@ namespace TarjimonOfficeUZ.Setup.Preflight
                 Registration = registration,
                 UninstallString = uninstall,
                 IsOwnProduct = IsOwnProduct(searchText, publisher),
-                Score = score,
+                Score = Math.Min(score, 100),
                 Evidence = evidence
             });
         }
@@ -330,7 +368,7 @@ namespace TarjimonOfficeUZ.Setup.Preflight
                 {
                     Product = Path.GetFileNameWithoutExtension(name), Publisher = publisher, Version = version,
                     Host = host, Registration = locationName + ": " + file, UninstallString = uninstall,
-                    IsOwnProduct = IsOwnProduct(text, publisher), Score = semantic + 35,
+                    IsOwnProduct = IsOwnProduct(text, publisher), Score = Math.Min(semantic + 35, 100),
                     Evidence = locationName + " + Office startup fayli; funksional metadata: " + BuildSemanticEvidence(text)
                 });
             }
