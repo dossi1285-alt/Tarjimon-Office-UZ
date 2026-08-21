@@ -79,6 +79,13 @@ if errorlevel 1 (
 echo OK - MSI tayyor.
 echo.
 
+echo [4/5] Preflight uchun NuGet/SDK restore qilinmoqda...
+"%MSBUILD%" "TarjimonOfficeUZ.Setup.Preflight\TarjimonOfficeUZ.Setup.Preflight.csproj" /t:Restore /p:Configuration=Debug
+set "RC=%ERRORLEVEL%"
+if not "%RC%"=="0" goto BUILD_ERROR
+echo OK - Preflight restore tugadi.
+echo.
+
 echo [4/5] Preflight launcher MSI bilan birga build qilinmoqda...
 "%MSBUILD%" "TarjimonOfficeUZ.Setup.Preflight\TarjimonOfficeUZ.Setup.Preflight.csproj" /t:Build /p:Configuration=Debug /p:MsiSource="%MSI%" /m
 set "RC=%ERRORLEVEL%"
