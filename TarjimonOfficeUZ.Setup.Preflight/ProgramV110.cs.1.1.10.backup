@@ -114,45 +114,48 @@ namespace TarjimonOfficeUZ.Setup.Preflight
             if (x == null) return false;
             if (x.IsOwnProduct) return true;
 
-            var text = NormalizeSearchText(
-                x.Product ?? string.Empty,
-                x.Publisher ?? string.Empty,
-                x.Host ?? string.Empty,
-                x.Evidence ?? string.Empty,
-                x.Registration ?? string.Empty,
-                x.InstallLocation ?? string.Empty,
-                x.StartupFile ?? string.Empty);
+            var product = NormalizeSearchText(x.Product, x.Publisher, x.Evidence, x.InstallLocation, x.Registration);
+            var publisher = NormalizeSearchText(x.Publisher);
+            var host = NormalizeSearchText(x.Host);
 
-            string[] noise =
-            {
-                "microsoft office mui", "microsoft office proofing", "proofing tools",
-                "office shared", "office 32-bit components", "office professional plus",
-                "language pack", "СЏР·С‹РєРѕРІРѕР№ РїР°РєРµС‚", "microsoft visual studio tools",
-                "visual studio tools", "microsoft silverlight"
-            };
-            foreach (var n in noise)
-                if (text.IndexOf(n, StringComparison.OrdinalIgnoreCase) >= 0) return false;
+            var strongPair = StrongFunctionPairs.Any(product.Contains);
+            var hasTranslatorSignal =
+                product.Contains("translit") ||
+                product.Contains("transliteration") ||
+                product.Contains("transliterator") ||
+                product.Contains("translator") ||
+                product.Contains("translation") ||
+                product.Contains("tarjimon") ||
+                product.Contains("РїРµСЂРµРІРѕРґС‡РёРє") ||
+                product.Contains("РїРµСЂРµРІРѕРґ") ||
+                product.Contains("preslov") ||
+                product.Contains("preslovlj") ||
+                product.Contains("savodxon");
 
-            string[] strong =
-            {
-                "translit", "transliteration", "transliterator", "translator", "translation",
-                "tarjimon", "savodxon", "РїРµСЂРµРІРѕРґС‡РёРє", "РїРµСЂРµРІРѕРґ", "preslov", "preslovljav",
-                "kirill-lotin", "lotin-kirill", "kirill to lotin", "lotin to kirill",
-                "cyrillic latin", "latin cyrillic", "cyrillic to latin", "latin to cyrillic"
-            };
+            var hasLanguagePair =
+                (product.Contains("kirill") && product.Contains("lotin")) ||
+                (product.Contains("cyrillic") && product.Contains("latin")) ||
+                (product.Contains("kiril") && product.Contains("latin"));
 
-            if (strong.Any(w => text.IndexOf(w, StringComparison.OrdinalIgnoreCase) >= 0)) return true;
+            var isOfficeCandidate =
+                host.Contains("word") || host.Contains("excel") || host.Contains("office") ||
+                product.Contains("\\addins\\") || product.Contains("startup") || product.Contains("xlstart");
 
-            var hasKirill = text.IndexOf("kirill", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                            text.IndexOf("cyrillic", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                            text.IndexOf("РєРёСЂРёР»", StringComparison.OrdinalIgnoreCase) >= 0;
-            var hasLatin = text.IndexOf("lotin", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                           text.IndexOf("latin", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                           text.IndexOf("Р»Р°С‚РёРЅ", StringComparison.OrdinalIgnoreCase) >= 0;
-            if (hasKirill && hasLatin) return true;
+            // Microsoft Office MUI/Proofing/Shared komponentlari tarjimon emas.
+            // Kuchli translator signali bo'lmasa jadvalga chiqmaydi.
+            if (publisher.Contains("microsoft") && !strongPair && !hasTranslatorSignal) return false;
+
+            // Office/AppData add-inlar: funksional signal bo'lsa noma'lum mahsulot ham qoladi.
+            if (isOfficeCandidate && (strongPair || hasTranslatorSignal || hasLanguagePair)) return true;
+
+            // Windows Installed Programs: generic converter/convert signalining o'zi yetarli emas.
+            // Bu Igor Pavlov/7-Zip kabi false positive'larni kesadi.
+            if (strongPair || hasLanguagePair) return true;
+            if (hasTranslatorSignal && x.Score >= 35) return true;
 
             return false;
-        }private static void ScanOfficeAddins(List<AddinCandidate> list, RegistryView[] views)
+        }
+        private static void ScanOfficeAddins(List<AddinCandidate> list, RegistryView[] views)
         {
             foreach (var view in views)
             foreach (var hive in new[] { RegistryHive.LocalMachine, RegistryHive.CurrentUser })
