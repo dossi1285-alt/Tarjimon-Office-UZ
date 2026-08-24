@@ -50,6 +50,26 @@ for %%D in (
 echo OK - eski build fayllari tozalandi.
 echo.
 
+echo [2/5] Setup icon tayyorlanmoqda...
+if not exist "TarjimonOfficeUZ.Setup.Preflight\TarjimonOfficeUZ.ico.b64" (
+  echo XATO: Setup icon manbasi topilmadi.
+  pause
+  exit /b 1
+)
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$b=[IO.File]::ReadAllText('TarjimonOfficeUZ.Setup.Preflight\TarjimonOfficeUZ.ico.b64').Trim(); [IO.File]::WriteAllBytes('TarjimonOfficeUZ.Setup.Preflight\TarjimonOfficeUZ.ico',[Convert]::FromBase64String($b))"
+if errorlevel 1 (
+  echo XATO: Setup icon yaratilmadi.
+  pause
+  exit /b 1
+)
+if not exist "TarjimonOfficeUZ.Setup.Preflight\TarjimonOfficeUZ.ico" (
+  echo XATO: Setup icon fayli hosil bo'lmadi.
+  pause
+  exit /b 1
+)
+echo OK - Word + Excel kombinatsiyali Setup icon tayyor.
+echo.
+
 set "MSBUILD=%ProgramFiles%\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe"
 if not exist "%MSBUILD%" set "MSBUILD=%ProgramFiles%\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe"
 if not exist "%MSBUILD%" (
@@ -123,9 +143,9 @@ echo.
 echo ===============================================
 echo BUILD MUVAFFAQIYATLI YAKUNLANDI.
 echo 1.1.0 TEST BUILD
- echo MSI:
+echo MSI:
 echo D:\Tarjimon-Office-UZ\Tarjimon Office UZ.msi
- echo FINAL SETUP:
+echo FINAL SETUP:
 echo D:\Tarjimon-Office-UZ\TarjimonOfficeUZSetup.exe
 echo ===============================================
 pause
