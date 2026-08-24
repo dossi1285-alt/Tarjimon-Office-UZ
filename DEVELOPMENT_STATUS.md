@@ -35,21 +35,26 @@ Boshqa ishlar hozircha qilinmaydi.
 - O'z mahsulotimiz uninstall qilinib, yangi nusxasi o'rnatilishi real testda ishladi.
 - Ushbu mexanizmga tegilmaydi.
 
-### Dizayn / UI — 100% — MUZLATILADI
-- Asosiy `Office tarjimonlari` oynasi ishlayapti.
-- Jadval ustunlari va checkbox mexanizmi ishlayapti.
-- Mahsulot nomi, ishlab chiqaruvchi, versiya, dastur, ishonch va muallif/ishlab chiqaruvchi ma'lumotlari ko'rsatilmoqda.
-- `Tarjimon Office UZ` o'z mahsuloti sifatida ajratilgan holda ko'rsatilmoqda.
-- Tasdiqlash va Bekor qilish tugmalari mavjud va ishlayapti.
-- Hozirgi maqsad: dizaynni 100% yakunlangan holat sifatida qabul qilish va keyingi o'zgarishlarni muzlatish.
-- Dizayn bo'yicha yangi talablar 1.0 finaldan keyingi bosqichga qoldiriladi.
+### Dizayn / UI — 100% MAQSAD — HOZIR YAKUNIY TESTDA
+Amaldagi dizayn talablari:
+- Asosiy `Office tarjimonlari` oynasi ishlaydi.
+- Jadval ustunlari va checkbox mexanizmi saqlanadi.
+- `Tasdiqlash` va `Bekor qilish` tugmalaridan keyingi pastki bo'sh joy **kichik va ixcham** bo'lishi kerak; tugmalar pastki panelga yopishib qolmasin, lekin ortiqcha oq joy ham qolmasin.
+- Rang sxemasida mavjud **ko'k** rang saqlanadi va unga **yashil** aksent qo'shiladi.
+- `Tasdiqlash` tugmasi yashil aksentda, `Bekor qilish` tugmasi ko'k aksentda bo'ladi.
+- `Office tarjimonlarini aniqlash` subtitri yashil aksent bilan ajratiladi.
+- `Tarjimon Office UZ` setup EXE uchun Word + Excel kombinatsiyasidagi ko'k/yashil icon tayyorlanadi.
+- Setup icon build vaqtida `.ico.b64` manbasidan qayta yaratiladi va `ApplicationIcon` sifatida ishlatiladi.
+- Qidiruv, merge, uninstall va boshqa muzlatilgan mexanizmlar dizayn o'zgarishi bilan buzilmasligi kerak.
+
+Dizayn patchi qo'llangandan keyin **build + real UI screenshot testi** o'tkaziladi. Test muvaffaqiyatli bo'lsa dizayn **100% va FREEZE** deb belgilanadi.
 
 ### Installer — 95% — MUZLATILGAN STABIL HOLAT
 - MSI/Setup o'rnatilishi ishlayapti.
 - O'z dasturimiz o'chirilgandan keyin yangi versiyasi qayta o'rnatilmoqda.
 - Yakuniy Setup EXE MSI ichiga joylashtirilmoqda.
 - Build real testda muvaffaqiyatli o'tgan.
-- Installer mexanizmiga tegilmaydi.
+- Installer mexanizmiga tegilmaydi; faqat setup icon uchun build asset ishlatiladi.
 
 ### Uninstall — 95% — MUZLATILGAN STABIL HOLAT
 - `TransLit` kabi begona tarjimonni uninstall qilish ishladi.
@@ -125,14 +130,14 @@ Display Filter 100% bo'lgach:
 | 🔵 Qidiruv | **95%** | 🧊 Muzlatilgan | Tegilmaydi |
 | 🔵 Duplicate merge | **95%** | 🧊 Muzlatilgan | Tegilmaydi |
 | 🟢 O'z mahsulotini aniqlash | **100%** | 🧊 Muzlatilgan | Tegilmaydi |
-| 🟢 Dizayn / UI | **100%** | 🧊 Muzlatishga tayyor | Hozir yakunlanadi |
+| 🟡 Dizayn / UI | **100% maqsad** | 🔧 Hozirgi tuzatish + test | Testdan keyin freeze |
 | 🟢 Installer / MSI / Setup | **95%** | 🧊 Muzlatilgan | Tegilmaydi |
 | 🟢 Uninstall | **95%** | 🧊 Stabil / muzlatilgan | Tegilmaydi |
 | 🟡 Single-UAC | **90%** | 🧊 Stabil | Tegilmaydi |
 | 🟡 Display Filter | **80%** | 🔧 Jarayonda | Hozir 100% qilinadi |
 
 ### Umumiy loyiha bahosi
-**≈ 95%** — bu loyiha boshqaruvi uchun taxminiy o'rtacha ko'rsatkich. Asosiy ishlaydigan mexanizmlarning katta qismi stabil/muzlatilgan; qolgan real texnik ishlar faqat **Display Filter** bilan cheklangan.
+**≈ 95%** — bu loyiha boshqaruvi uchun taxminiy o'rtacha ko'rsatkich. Asosiy ishlaydigan mexanizmlarning katta qismi stabil/muzlatilgan; qolgan real texnik ishlar faqat **Dizayn** va **Display Filter** bilan cheklangan.
 
 ### Ranglar ma'nosi
 - 🟢 **100%** — yakunlangan / muzlatilgan.
