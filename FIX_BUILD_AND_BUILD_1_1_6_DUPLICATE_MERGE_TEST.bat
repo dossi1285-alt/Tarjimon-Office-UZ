@@ -24,8 +24,13 @@ echo OK.
 echo.
 
 echo [2/3] Asosiy build ishga tushirilmoqda...
-call "%CD%\FIX_BUILD_AND_BUILD.bat"
-set "RC=%ERRORLEVEL%"
+if not exist "%CD%\FIX_BUILD_AND_BUILD.bat" (
+  echo XATO: Asosiy build BAT topilmadi: %CD%\FIX_BUILD_AND_BUILD.bat
+  set "RC=1"
+) else (
+  call FIX_BUILD_AND_BUILD.bat
+  set "RC=%ERRORLEVEL%"
+)
 echo.
 
 echo [3/3] Stabil 1.1.0 source qaytarilmoqda...
