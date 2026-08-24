@@ -2,19 +2,15 @@ using System;
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.Method, Inherited = false)]
-    internal sealed class ModuleInitializerAttribute : Attribute { }
-}
-
 namespace TarjimonOfficeUZ.Setup.Preflight
 {
     internal static class DesignRuntime
     {
         private static bool applied;
 
-        [System.Runtime.CompilerServices.ModuleInitializer]
+        // Called explicitly from ProgramV110.Main after WinForms startup defaults
+        // are configured. A module initializer can touch WinForms too early and
+        // cause SetCompatibleTextRenderingDefault to throw.
         internal static void Initialize()
         {
             Application.Idle += ApplyWhenReady;
