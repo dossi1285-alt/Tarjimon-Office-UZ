@@ -12,8 +12,10 @@ Copy-Item $source $backup -Force
 Write-Host "Backup yaratildi: $backup"
 
 $text = [IO.File]::ReadAllText($source, [Text.Encoding]::UTF8)
-$old = '.Where(x => x.IsOwnProduct || x.Score >= 35)'
-$new = '.Where(IsDisplayTranslatorCandidate)'
+
+# Source hozir merge bosqichida quyidagi aniq qatorga ega.
+$old = '                .Where(x => x.IsOwnProduct || x.Score >= 35)'
+$new = '                .Where(IsDisplayTranslatorCandidate)'
 
 if (!$text.Contains($old)) {
     throw 'Kutilgan display filter qatori topilmadi. Source o`zgargan; patch bekor qilindi.'
@@ -45,7 +47,6 @@ $method = @'
                 x.InstallLocation ?? string.Empty,
                 x.StartupFile ?? string.Empty);
 
-            // Office til paketlari, proofing/MUI/shared komponentlari tarjimon emas.
             string[] noise =
             {
                 "microsoft office mui", "microsoft office proofing", "proofing tools",
@@ -56,8 +57,7 @@ $method = @'
             foreach (var n in noise)
                 if (text.IndexOf(n, StringComparison.OrdinalIgnoreCase) >= 0) return false;
 
-            // Oddiy converter/convert dasturlarini tarjimon deb qabul qilmaymiz.
-            var strong = new[]
+            string[] strong =
             {
                 "translit", "transliteration", "transliterator", "translator", "translation",
                 "tarjimon", "savodxon", "переводчик", "перевод", "preslov", "preslovljav",
@@ -65,10 +65,8 @@ $method = @'
                 "cyrillic latin", "latin cyrillic", "cyrillic to latin", "latin to cyrillic"
             };
 
-            var hasStrong = strong.Any(w => text.IndexOf(w, StringComparison.OrdinalIgnoreCase) >= 0);
-            if (hasStrong) return true;
+            if (strong.Any(w => text.IndexOf(w, StringComparison.OrdinalIgnoreCase) >= 0)) return true;
 
-            // Kirill/lotin alohida uchrasa ham faqat ikkalasi birga bo`lsa qoldiramiz.
             var hasKirill = text.IndexOf("kirill", StringComparison.OrdinalIgnoreCase) >= 0 ||
                             text.IndexOf("cyrillic", StringComparison.OrdinalIgnoreCase) >= 0 ||
                             text.IndexOf("кирил", StringComparison.OrdinalIgnoreCase) >= 0;
@@ -77,7 +75,6 @@ $method = @'
                            text.IndexOf("латин", StringComparison.OrdinalIgnoreCase) >= 0;
             if (hasKirill && hasLatin) return true;
 
-            // Generic convert/conversion/converter endi yetarli signal emas.
             return false;
         }
 
