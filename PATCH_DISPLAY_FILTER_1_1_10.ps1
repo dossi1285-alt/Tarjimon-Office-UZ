@@ -13,58 +13,47 @@ Write-Host "Backup yaratildi: $backup"
 
 $text = [IO.File]::ReadAllText($source, [Text.Encoding]::UTF8)
 
-# Source hozir merge bosqichida quyidagi aniq qatorga ega.
-$old = '                .Where(x => x.IsOwnProduct || x.Score >= 35)'
-$new = '                .Where(IsDisplayTranslatorCandidate)'
-
-if (!$text.Contains($old)) {
-    throw 'Kutilgan display filter qatori topilmadi. Source o`zgargan; patch bekor qilindi.'
-}
-
 if ($text.Contains('private static bool IsDisplayTranslatorCandidate(AddinCandidate x)')) {
-    throw '1.1.10 display filter allaqachon mavjud.'
+    Write-Host '1.1.10 display filter allaqachon mavjud. Patch qayta qo`llanmaydi.'
+    exit 0
 }
 
-$text = $text.Replace($old, $new)
+$pattern = '(?m)^(\s*)\.Where\s*\(\s*x\s*=>\s*x\.IsOwnProduct\s*\|\|\s*x\.Score\s*>=\s*35\s*\)'
+$match = [regex]::Match($text, $pattern)
+if (!$match.Success) {
+    $pattern = '\.Where\s*\(\s*x\s*=>\s*x\.IsOwnProduct\s*\|\|\s*x\.Score\s*>=\s*35\s*\)'
+    $match = [regex]::Match($text, $pattern)
+}
+if (!$match.Success) {
+    Write-Host 'Source dagi Where qatorlari:'
+    $text -split "`r?`n" | Where-Object { $_ -match '\.Where' } | ForEach-Object { Write-Host $_ }
+    throw 'Display filter qatori topilmadi. Bu source boshqa filter versiyasiga ega.'
+}
+
+$replacement = [regex]::Replace($match.Value, '\.Where\s*\(\s*x\s*=>\s*x\.IsOwnProduct\s*\|\|\s*x\.Score\s*>=\s*35\s*\)', '.Where(IsDisplayTranslatorCandidate)')
+$text = $text.Remove($match.Index, $match.Length).Insert($match.Index, $replacement)
 
 $marker = '        private static void ScanOfficeAddins(List<AddinCandidate> list, RegistryView[] views)'
-if (!$text.Contains($marker)) {
-    throw 'ScanOfficeAddins marker topilmadi. Source o`zgargan; patch bekor qilindi.'
-}
+if (!$text.Contains($marker)) { throw 'ScanOfficeAddins marker topilmadi. Source o`zgargan; patch bekor qilindi.' }
 
 $method = @'
         private static bool IsDisplayTranslatorCandidate(AddinCandidate x)
         {
             if (x == null) return false;
             if (x.IsOwnProduct) return true;
+            var text = NormalizeSearchText(x.Product ?? string.Empty, x.Publisher ?? string.Empty,
+                x.Host ?? string.Empty, x.Evidence ?? string.Empty, x.Registration ?? string.Empty,
+                x.InstallLocation ?? string.Empty, x.StartupFile ?? string.Empty);
 
-            var text = NormalizeSearchText(
-                x.Product ?? string.Empty,
-                x.Publisher ?? string.Empty,
-                x.Host ?? string.Empty,
-                x.Evidence ?? string.Empty,
-                x.Registration ?? string.Empty,
-                x.InstallLocation ?? string.Empty,
-                x.StartupFile ?? string.Empty);
+            string[] noise = { "microsoft office mui", "microsoft office proofing", "proofing tools",
+                "office shared", "office 32-bit components", "office professional plus", "language pack",
+                "языковой пакет", "microsoft visual studio tools", "visual studio tools", "microsoft silverlight" };
+            foreach (var n in noise) if (text.IndexOf(n, StringComparison.OrdinalIgnoreCase) >= 0) return false;
 
-            string[] noise =
-            {
-                "microsoft office mui", "microsoft office proofing", "proofing tools",
-                "office shared", "office 32-bit components", "office professional plus",
-                "language pack", "языковой пакет", "microsoft visual studio tools",
-                "visual studio tools", "microsoft silverlight"
-            };
-            foreach (var n in noise)
-                if (text.IndexOf(n, StringComparison.OrdinalIgnoreCase) >= 0) return false;
-
-            string[] strong =
-            {
-                "translit", "transliteration", "transliterator", "translator", "translation",
+            string[] strong = { "translit", "transliteration", "transliterator", "translator", "translation",
                 "tarjimon", "savodxon", "переводчик", "перевод", "preslov", "preslovljav",
                 "kirill-lotin", "lotin-kirill", "kirill to lotin", "lotin to kirill",
-                "cyrillic latin", "latin cyrillic", "cyrillic to latin", "latin to cyrillic"
-            };
-
+                "cyrillic latin", "latin cyrillic", "cyrillic to latin", "latin to cyrillic" };
             if (strong.Any(w => text.IndexOf(w, StringComparison.OrdinalIgnoreCase) >= 0)) return true;
 
             var hasKirill = text.IndexOf("kirill", StringComparison.OrdinalIgnoreCase) >= 0 ||
@@ -73,15 +62,11 @@ $method = @'
             var hasLatin = text.IndexOf("lotin", StringComparison.OrdinalIgnoreCase) >= 0 ||
                            text.IndexOf("latin", StringComparison.OrdinalIgnoreCase) >= 0 ||
                            text.IndexOf("латин", StringComparison.OrdinalIgnoreCase) >= 0;
-            if (hasKirill && hasLatin) return true;
-
-            return false;
+            return hasKirill && hasLatin;
         }
 
 '@
-
 $text = $text.Replace($marker, $method + $marker)
-
 [IO.File]::WriteAllText($source, $text, [Text.Encoding]::UTF8)
 Write-Host 'OK - 1.1.10 Strict Display Filter qo`llandi.'
 Write-Host 'Qidiruv, duplicate merge va uninstall kodiga tegilmadi.'
