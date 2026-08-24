@@ -12,6 +12,7 @@
     <AssemblyCompany>Dostonjon Ashurov</AssemblyCompany>
     <Description>Microsoft Office tarjimonlarini aniqlash va boshqarish vositasi.</Description>
     <Copyright>© 2026 Dostonjon Ashurov</Copyright>
+    <ApplicationIcon>TarjimonOfficeUZ.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
