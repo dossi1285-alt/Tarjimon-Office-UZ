@@ -151,8 +151,19 @@ $newRun = @'
                 fileName = "msiexec.exe";
                 var space = trimmed.IndexOf(' ');
                 arguments = space >= 0 ? trimmed.Substring(space + 1).Trim() : string.Empty;
-                arguments = Regex.Replace(arguments, @"(?i)(^|\s)/(i|x)(?=\s*\{)", "$1/X");
-                if (!Regex.IsMatch(arguments, @"(?i)(^|\s)/x(?=\s*\{")) return false;
+
+                // MSI uninstall: regex ishlatmaymiz — parser xatosi bo'lmasligi uchun oddiy string tekshiruvi.
+                var lower = arguments.ToLowerInvariant();
+                var xIndex = lower.IndexOf("/x", StringComparison.Ordinal);
+                var iIndex = lower.IndexOf("/i", StringComparison.Ordinal);
+                if (xIndex < 0 && iIndex >= 0)
+                {
+                    arguments = arguments.Substring(0, iIndex) + "/X" + arguments.Substring(iIndex + 2);
+                }
+                else if (xIndex < 0)
+                {
+                    return false;
+                }
             }
             else if (trimmed.StartsWith("\""))
             {
@@ -188,4 +199,4 @@ $newRun = @'
 if (-not [regex]::IsMatch($text, $runPattern)) { throw 'RunUninstall qismi topilmadi.' }
 $text = [regex]::Replace($text, $runPattern, $newRun, 1)
 Set-Content -Path $source -Value $text -Encoding UTF8
-Write-Host '1.1.8 single-UAC uninstall patch qo`llandi.'
+Write-Host '1.1.8 single-UAC uninstall patch qo`llandi (regex-free MSI parser).'
