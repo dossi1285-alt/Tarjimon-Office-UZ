@@ -63,7 +63,15 @@ namespace TarjimonOfficeUZ.Setup.Preflight
                     panel.Height = 48;
                     panel.Padding = new Padding(18, 7, 18, 7);
                     foreach (Control child in panel.Controls)
-                        if (child is Button b) b.Top = 7;
+                    {
+                        if (child is Button b)
+                        {
+                            b.Top = 7;
+                            // Tugmalar guruhini o'ng chekkadan ozgina ichkariga suramiz.
+                            // Bu "Bekor qilish" tugmasidan keyin ko'zga ko'rinadigan bo'sh joy qoldiradi.
+                            b.Left = Math.Max(0, b.Left - 12);
+                        }
+                    }
                 }
 
                 if (control.HasChildren) Apply(control);
