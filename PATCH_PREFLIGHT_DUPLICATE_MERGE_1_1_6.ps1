@@ -81,7 +81,8 @@ $replacement = @'
             return names.Contains(product, StringComparer.OrdinalIgnoreCase);
         }
 
-        private static AddinCandidate MergeCandidate'@
+        private static AddinCandidate MergeCandidate
+'@
 $newText = [regex]::Replace($text, $pattern, $replacement, 1)
 if ($newText -eq $text) { throw 'BuildProductIdentity qismi topilmadi yoki almashtirilmadi.' }
 Set-Content -Path $source -Value $newText -Encoding UTF8
