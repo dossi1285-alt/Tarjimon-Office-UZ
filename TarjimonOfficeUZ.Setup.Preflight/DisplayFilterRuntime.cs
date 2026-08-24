@@ -1,21 +1,23 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Windows.Forms;
 
 namespace TarjimonOfficeUZ.Setup.Preflight
 {
     // 1.0 FINALIZATION: display-only filter.
-    // Deliberately does not modify discovery, duplicate merge, uninstall, or installer logic.
+    // Does not modify discovery, duplicate merge, uninstall, or installer logic.
     internal static class DisplayFilterRuntime
     {
+        private static Timer timer;
         private static bool applied;
 
-        [ModuleInitializer]
+        [System.Runtime.CompilerServices.ModuleInitializer]
         internal static void Initialize()
         {
-            Application.Idle += ApplyWhenReady;
+            timer = new Timer { Interval = 150 };
+            timer.Tick += ApplyWhenReady;
+            timer.Start();
         }
 
         private static void ApplyWhenReady(object sender, EventArgs e)
@@ -30,7 +32,9 @@ namespace TarjimonOfficeUZ.Setup.Preflight
 
                 Filter(list);
                 applied = true;
-                Application.Idle -= ApplyWhenReady;
+                timer.Stop();
+                timer.Dispose();
+                timer = null;
                 return;
             }
         }
@@ -56,11 +60,12 @@ namespace TarjimonOfficeUZ.Setup.Preflight
             foreach (ListViewItem row in list.Items)
             {
                 var candidate = row.Tag as AddinCandidate;
-                if (candidate == null) continue;
-                if (!IsDisplayTranslatorCandidate(candidate)) remove.Add(row);
+                if (candidate == null || !IsDisplayTranslatorCandidate(candidate))
+                    remove.Add(row);
             }
 
-            foreach (var row in remove) list.Items.Remove(row);
+            foreach (var row in remove)
+                list.Items.Remove(row);
         }
 
         private static bool IsDisplayTranslatorCandidate(AddinCandidate item)
@@ -74,35 +79,37 @@ namespace TarjimonOfficeUZ.Setup.Preflight
             var host = Normalize(item.Host);
             var all = product + " " + publisher + " " + evidence;
 
-            // Explicit translator/transliterator products.
+            // Strong, explicit translator/transliterator identity.
             if (ContainsAny(all,
                 "translit", "transliteration", "transliterator", "translator", "translation",
-                "tarjimon", "переводчик", "перевод", "savodxon", "preslovljanje", "preslovljavanje"))
+                "translate", "tarjimon", "переводчик", "перевод", "savodxon",
+                "preslovljanje", "preslovljavanje"))
                 return true;
 
-            // Explicit Cyrillic/Latin conversion products. A single generic 'convert' is not enough.
+            // Cyrillic/Latin conversion is accepted only when both sides are present.
             var cyrillic = ContainsAny(all, "kirill", "kiril", "cyrillic", "кирилл");
             var latin = ContainsAny(all, "lotin", "latin", "латин");
             if (cyrillic && latin) return true;
 
-            // Office add-ins with a strong translation/conversion signal.
+            // Office-hosted add-ins need an explicit translation signal.
             if (ContainsAny(host, "word", "excel", "office") &&
                 ContainsAny(all, "translate", "translation", "translator", "translit", "transliteration", "tarjimon", "перевод"))
                 return true;
 
-            // Known technical Office components and ordinary applications are never display candidates.
+            // Known non-translator software and technical Office components are hidden.
             if (ContainsAny(all,
                 "microsoft office", "office mui", "proofing tools", "proofingtool", "shared features",
                 "shared components", "office shared", "visual studio", "visual studio tools",
                 "github", "git", "google chrome", "chrome", "mozilla firefox", "firefox",
                 "telegram", "lightshot", "7 zip", "7zip", "winrar", "easeus", "silverlight",
-                "runtime", "redistributable", "developer tools", "sdk", "browser"))
+                "workflow manager", "zoom workplace", "runtime", "redistributable", "developer tools",
+                "sdk", "browser"))
                 return false;
 
-            // Generic converter/convert terms alone must never make a program a translator.
+            // Generic converter words alone are not enough.
             if (ContainsAny(all, "converter", "conversion", "convert")) return false;
 
-            // Unknown low-confidence candidates are hidden; the discovery engine remains unchanged.
+            // Unknown/low-confidence candidates stay hidden from the display.
             return false;
         }
 
@@ -115,7 +122,10 @@ namespace TarjimonOfficeUZ.Setup.Preflight
 
         private static string Normalize(string value)
         {
-            return (value ?? string.Empty).Replace("-", " ").Replace("_", " ").ToLowerInvariant();
+            return (value ?? string.Empty)
+                .Replace("-", " ")
+                .Replace("_", " ")
+                .ToLowerInvariant();
         }
     }
 }
