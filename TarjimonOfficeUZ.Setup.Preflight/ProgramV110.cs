@@ -51,7 +51,6 @@ namespace TarjimonOfficeUZ.Setup.Preflight
         private static int Main()
         {
             Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
             try
             {
                 var candidates = ScanCandidates();
