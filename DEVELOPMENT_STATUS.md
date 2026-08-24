@@ -1,12 +1,13 @@
 # Tarjimon Office UZ — Development Status
 
-## 2026-08-24 — 1.0 FINALIZATION: DESIGN + DISPLAY FILTER ONLY
+## 2026-08-24 — 1.0 FINALIZATION: DESIGN FROZEN + DISPLAY FILTER ONLY
 
 ### Ishlash rejimi — MUHIM
 1.0 versiyani yakunlash bosqichidamiz.
-Hozirdan boshlab faqat **2 ta ish** bajariladi:
-1. **Dizayn** — 100% ga yetkazish va muzlatish.
-2. **Yakuniy Display Filter** — jadvalda faqat kerakli translator/add-inlarni qoldirish, real testdan o'tkazish va muzlatish.
+Hozirdan boshlab faqat **1 ta faol ish** qoladi:
+1. **Yakuniy Display Filter** — jadvalda faqat kerakli translator/add-inlarni qoldirish, real testdan o'tkazish va muzlatish.
+
+**Dizayn 100% yakunlandi va MUZLATILDI.**
 
 Boshqa ishlar hozircha qilinmaydi.
 - Qidiruvga tegilmaydi.
@@ -14,8 +15,9 @@ Boshqa ishlar hozircha qilinmaydi.
 - O'z mahsulotimizni aniqlashga tegilmaydi.
 - Installer/WiX mexanizmiga tegilmaydi.
 - Uninstall va Single-UAC mexanizmiga tegilmaydi.
+- Dizayn qayta o'zgartirilmaydi.
 - Yangi funksiyalar qo'shilmaydi.
-- 1.0 finalizatsiyasi tugamaguncha yangi yo'nalish ochilmaydi.
+- Display Filter 100% bo'lmaguncha yangi yo'nalish ochilmaydi.
 
 ### Qidiruv / aniqlash — 95% — MUZLATILGAN
 - Office Add-in qidiruvi ishlayapti.
@@ -35,19 +37,20 @@ Boshqa ishlar hozircha qilinmaydi.
 - O'z mahsulotimiz uninstall qilinib, yangi nusxasi o'rnatilishi real testda ishladi.
 - Ushbu mexanizmga tegilmaydi.
 
-### Dizayn / UI — 100% MAQSAD — HOZIR YAKUNIY TESTDA
-Amaldagi dizayn talablari:
+### Dizayn / UI — 100% — MUZLATILGAN
 - Asosiy `Office tarjimonlari` oynasi ishlaydi.
-- Jadval ustunlari va checkbox mexanizmi saqlanadi.
-- `Tasdiqlash` va `Bekor qilish` tugmalaridan keyingi pastki bo'sh joy **kichik va ixcham** bo'lishi kerak; tugmalar pastki panelga yopishib qolmasin, lekin ortiqcha oq joy ham qolmasin.
-- Rang sxemasida mavjud **ko'k** rang saqlanadi va unga **yashil** aksent qo'shiladi.
-- `Tasdiqlash` tugmasi yashil aksentda, `Bekor qilish` tugmasi ko'k aksentda bo'ladi.
-- `Office tarjimonlarini aniqlash` subtitri yashil aksent bilan ajratiladi.
-- `Tarjimon Office UZ` setup EXE uchun Word + Excel kombinatsiyasidagi ko'k/yashil icon tayyorlanadi.
+- Jadval ustunlari va checkbox mexanizmi saqlangan.
+- `Tasdiqlash` va `Bekor qilish` tugmalaridan keyingi bo'sh joy ixcham va nazoratli holatga keltirildi.
+- Tugmalar pastki panelga yopishib qolmaydi va ortiqcha oq joy qoldirilmaydi.
+- Mavjud **ko'k** rang saqlangan va **yashil** aksent qo'shilgan.
+- `Tasdiqlash` tugmasi yashil aksentda.
+- `Bekor qilish` tugmasi ko'k aksentda.
+- `Office tarjimonlarini aniqlash` subtitri yashil aksentda.
+- `Tarjimon Office UZ` setup EXE uchun Word + Excel kombinatsiyasidagi ko'k/yashil icon tayyorlangan.
 - Setup icon build vaqtida `.ico.b64` manbasidan qayta yaratiladi va `ApplicationIcon` sifatida ishlatiladi.
-- Qidiruv, merge, uninstall va boshqa muzlatilgan mexanizmlar dizayn o'zgarishi bilan buzilmasligi kerak.
-
-Dizayn patchi qo'llangandan keyin **build + real UI screenshot testi** o'tkaziladi. Test muvaffaqiyatli bo'lsa dizayn **100% va FREEZE** deb belgilanadi.
+- Dizayn kodi alohida `DesignRuntime.cs` orqali qo'llanadi.
+- Qidiruv, merge, uninstall va boshqa muzlatilgan mexanizmlarga dizayn tuzatishlari bilan tegilmaydi.
+- Dizayn real UI ko'rinishida tekshirildi va foydalanuvchi tomonidan **100% qabul qilindi**.
 
 ### Installer — 95% — MUZLATILGAN STABIL HOLAT
 - MSI/Setup o'rnatilishi ishlayapti.
@@ -65,7 +68,7 @@ Dizayn patchi qo'llangandan keyin **build + real UI screenshot testi** o'tkazila
 - Uninstall mexanizmiga display filter ishini tuzatish bahonasida tegilmaydi.
 
 ### Yakuniy Display Filter — 80% — JARAYONDA
-Hozirgi asosiy texnik ish shu.
+Hozirgi yagona faol texnik ish shu.
 
 Muammo:
 - Qidiruv ko'p nomzodlarni to'g'ri topmoqda.
@@ -96,12 +99,12 @@ Display filter real testdan muvaffaqiyatli o'tgach **100% deb belgilanadi va muz
 - Build muvaffaqiyatli bo'lmaguncha yangi holat freeze qilinmaydi.
 - Real test natijasi ko'rilmaguncha stabil kodga yangi o'zgarish kiritilmaydi.
 - Muzlatilgan qismlarga 1.0 finalizatsiyasi davomida tegilmaydi.
+- **Dizayn 100% muzlatilgan: unga qayta o'zgarish kiritilmaydi.**
 
 ## 1.0 FINAL YO'NALISHI
 
 ### Hozir bajariladi
-1. **Dizayn — 100% va FREEZE**
-2. **Display Filter — 80% → 100% va FREEZE**
+1. **Display Filter — 80% → 100% va FREEZE**
 
 ### Hozir bajarilmaydi
 - Qidiruvni qayta ishlab chiqish.
@@ -111,7 +114,7 @@ Display filter real testdan muvaffaqiyatli o'tgach **100% deb belgilanadi va muz
 - Installer/WiXni qayta ishlab chiqish.
 - Yangi qidiruv manbalari qo'shish.
 - Yangi funksiyalar qo'shish.
-- Yangi dizayn funksiyalari qo'shish.
+- Dizaynni qayta o'zgartirish.
 
 ### 1.0 yakuniy audit
 Display Filter 100% bo'lgach:
@@ -130,14 +133,14 @@ Display Filter 100% bo'lgach:
 | 🔵 Qidiruv | **95%** | 🧊 Muzlatilgan | Tegilmaydi |
 | 🔵 Duplicate merge | **95%** | 🧊 Muzlatilgan | Tegilmaydi |
 | 🟢 O'z mahsulotini aniqlash | **100%** | 🧊 Muzlatilgan | Tegilmaydi |
-| 🟡 Dizayn / UI | **100% maqsad** | 🔧 Hozirgi tuzatish + test | Testdan keyin freeze |
+| 🟢 Dizayn / UI | **100%** | 🧊 Muzlatilgan | Tegilmaydi |
 | 🟢 Installer / MSI / Setup | **95%** | 🧊 Muzlatilgan | Tegilmaydi |
-| 🟢 Uninstall | **95%** | 🧊 Stabil / muzlatilgan | Tegilmaydi |
+| 🟢 Uninstall | **95%** | 🧊 Muzlatilgan | Tegilmaydi |
 | 🟡 Single-UAC | **90%** | 🧊 Stabil | Tegilmaydi |
 | 🟡 Display Filter | **80%** | 🔧 Jarayonda | Hozir 100% qilinadi |
 
 ### Umumiy loyiha bahosi
-**≈ 95%** — bu loyiha boshqaruvi uchun taxminiy o'rtacha ko'rsatkich. Asosiy ishlaydigan mexanizmlarning katta qismi stabil/muzlatilgan; qolgan real texnik ishlar faqat **Dizayn** va **Display Filter** bilan cheklangan.
+**≈ 95%** — bu loyiha boshqaruvi uchun taxminiy o'rtacha ko'rsatkich. Asosiy ishlaydigan mexanizmlarning katta qismi stabil/muzlatilgan; qolgan real texnik ish faqat **Display Filter** bilan cheklangan.
 
 ### Ranglar ma'nosi
 - 🟢 **100%** — yakunlangan / muzlatilgan.
@@ -147,4 +150,4 @@ Display Filter 100% bo'lgach:
 - 🧊 **MUZLATILGAN** — 1.0 finalizatsiya davomida tegilmaydi.
 
 ## Muhim eslatma
-**1.0 FINALIZATSIYA rejimi:** faqat ikkita yo'nalish — **Dizayn** va **Display Filter**. Qolgan barcha yaxshi ishlayotgan qismlar muzlatilgan. Avvalgi yaxshi natija saqlanadi; faqat nosoz joy kichik, alohida va qaytariladigan o'zgarish bilan tuzatiladi.
+**1.0 FINALIZATSIYA rejimi:** dizayn yakunlandi va muzlatildi. Endi faqat **Display Filter** ustida ishlanadi. Qolgan barcha yaxshi ishlayotgan qismlar muzlatilgan. Avvalgi yaxshi natija saqlanadi; faqat nosoz joy kichik, alohida va qaytariladigan o'zgarish bilan tuzatiladi.
