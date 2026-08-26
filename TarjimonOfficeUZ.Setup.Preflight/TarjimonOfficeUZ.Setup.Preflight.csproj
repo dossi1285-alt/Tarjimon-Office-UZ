@@ -37,4 +37,9 @@
       <Type>Non-Resx</Type>
     </EmbeddedResource>
   </ItemGroup>
+
+  <!-- Keep the repository-root Setup EXE synchronized with the tested Preflight build. -->
+  <Target Name="CopyFinalSetupToRepositoryRoot" AfterTargets="Build">
+    <Copy SourceFiles="$(TargetPath)" DestinationFiles="$(MSBuildProjectDirectory)\..\TarjimonOfficeUZSetup.exe" SkipUnchangedFiles="false" />
+  </Target>
 </Project>
