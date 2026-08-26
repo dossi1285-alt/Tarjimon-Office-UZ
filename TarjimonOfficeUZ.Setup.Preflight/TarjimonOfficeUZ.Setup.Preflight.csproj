@@ -24,8 +24,11 @@
     <Reference Include="System.IO.Compression.FileSystem" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(PreflightVersion)' == '1.1.0'">
+  <ItemGroup>
+    <!-- Only the dedicated own-product installer is compiled. Legacy preflight/UI/filter sources are excluded. -->
     <Compile Remove="Program.cs" />
+    <Compile Remove="ProgramV110.cs" />
+    <Compile Remove="DisplayFilterRuntime.cs" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(MsiSource)' != '' and Exists('$(MsiSource)')">
