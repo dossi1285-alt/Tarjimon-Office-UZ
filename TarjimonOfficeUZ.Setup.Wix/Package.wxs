@@ -11,8 +11,9 @@
     <MediaTemplate EmbedCab="yes" />
 
     <WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
+    <WixVariable Id="WixUICostingPopupOptOut" Value="1" />
     <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
-    <UIRef Id="TarjimonOfficeUZ_InstallDir_X64" />
+    <ui:WixUI Id="TarjimonOfficeUZ_InstallDir" InstallDirectory="INSTALLFOLDER" />
 
     <StandardDirectory Id="ProgramFiles64Folder">
       <Directory Id="INSTALLFOLDER" Name="Tarjimon Office UZ">
@@ -34,10 +35,7 @@
     </Files>
 
     <Component Id="WordAddinRegistration64" Directory="WORDDIR">
-      <RemoveRegistryKey
-          Root="HKCU"
-          Key="Software\Microsoft\Office\Word\Addins\TarjimonOfficeUZ.Word"
-          Action="removeOnInstall" />
+      <RemoveRegistryKey Root="HKCU" Key="Software\Microsoft\Office\Word\Addins\TarjimonOfficeUZ.Word" Action="removeOnInstall" />
       <RegistryKey Root="HKLM" Key="Software\Microsoft\Office\Word\Addins\TarjimonOfficeUZ.Word">
         <RegistryValue Name="Description" Type="string" Value="Tarjimon Office UZ Word add-in" />
         <RegistryValue Name="FriendlyName" Type="string" Value="Tarjimon Office UZ" />
@@ -47,10 +45,7 @@
     </Component>
 
     <Component Id="WordAddinRegistration32" Directory="REG32DIR" Bitness="always32">
-      <RemoveRegistryKey
-          Root="HKCU"
-          Key="Software\Microsoft\Office\Word\Addins\TarjimonOfficeUZ.Word"
-          Action="removeOnInstall" />
+      <RemoveRegistryKey Root="HKCU" Key="Software\Microsoft\Office\Word\Addins\TarjimonOfficeUZ.Word" Action="removeOnInstall" />
       <RegistryKey Root="HKLM" Key="Software\Microsoft\Office\Word\Addins\TarjimonOfficeUZ.Word">
         <RegistryValue Name="Description" Type="string" Value="Tarjimon Office UZ Word add-in" />
         <RegistryValue Name="FriendlyName" Type="string" Value="Tarjimon Office UZ" />
@@ -60,10 +55,7 @@
     </Component>
 
     <Component Id="ExcelAddinRegistration64" Directory="EXCELDIR">
-      <RemoveRegistryKey
-          Root="HKCU"
-          Key="Software\Microsoft\Office\Excel\Addins\TarjimonOfficeUZ.Excel"
-          Action="removeOnInstall" />
+      <RemoveRegistryKey Root="HKCU" Key="Software\Microsoft\Office\Excel\Addins\TarjimonOfficeUZ.Excel" Action="removeOnInstall" />
       <RegistryKey Root="HKLM" Key="Software\Microsoft\Office\Excel\Addins\TarjimonOfficeUZ.Excel">
         <RegistryValue Name="Description" Type="string" Value="Tarjimon Office UZ Excel add-in" />
         <RegistryValue Name="FriendlyName" Type="string" Value="Tarjimon Office UZ" />
@@ -73,13 +65,8 @@
     </Component>
 
     <Component Id="ExcelAddinRegistration32" Directory="REG32DIR" Bitness="always32">
-      <RemoveRegistryKey
-          Root="HKCU"
-          Key="Software\Microsoft\Office\Excel\Addins\TarjimonOfficeUZ.Excel"
-          Action="removeOnInstall" />
-      <RegistryKey
-          Root="HKLM"
-          Key="Software\Microsoft\Office\Excel\Addins\TarjimonOfficeUZ.Excel">
+      <RemoveRegistryKey Root="HKCU" Key="Software\Microsoft\Office\Excel\Addins\TarjimonOfficeUZ.Excel" Action="removeOnInstall" />
+      <RegistryKey Root="HKLM" Key="Software\Microsoft\Office\Excel\Addins\TarjimonOfficeUZ.Excel">
         <RegistryValue Name="Description" Type="string" Value="Tarjimon Office UZ Excel add-in" />
         <RegistryValue Name="FriendlyName" Type="string" Value="Tarjimon Office UZ" />
         <RegistryValue Name="LoadBehavior" Type="integer" Value="3" />
