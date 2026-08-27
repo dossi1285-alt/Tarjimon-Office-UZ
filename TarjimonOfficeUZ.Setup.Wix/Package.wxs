@@ -1,13 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
   <Package
       Name="Tarjimon Office UZ"
       Manufacturer="Dostonjon Ashurov"
       Version="$(ProductVersion)"
+      Scope="perMachine"
       UpgradeCode="6B7A9F1C-6B2A-4C8D-9F5E-1D6B6A9C7E21">
 
     <MajorUpgrade DowngradeErrorMessage="A newer version of Tarjimon Office UZ is already installed." />
     <MediaTemplate EmbedCab="yes" />
+
+    <WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
+    <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" ExtendedPathValidation="yes" />
 
     <StandardDirectory Id="ProgramFiles64Folder">
       <Directory Id="INSTALLFOLDER" Name="Tarjimon Office UZ">
@@ -72,7 +77,9 @@
           Root="HKCU"
           Key="Software\Microsoft\Office\Excel\Addins\TarjimonOfficeUZ.Excel"
           Action="removeOnInstall" />
-      <RegistryKey Root="HKLM" Key="Software\Microsoft\Office\Excel\Addins\TarjimonOfficeUZ.Excel">
+      <RegistryKey
+          Root="HKLM"
+          Key="Software\Microsoft\Office\Excel\Addins\TarjimonOfficeUZ.Excel">
         <RegistryValue Name="Description" Type="string" Value="Tarjimon Office UZ Excel add-in" />
         <RegistryValue Name="FriendlyName" Type="string" Value="Tarjimon Office UZ" />
         <RegistryValue Name="LoadBehavior" Type="integer" Value="3" />
