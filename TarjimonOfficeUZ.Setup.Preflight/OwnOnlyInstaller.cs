@@ -10,7 +10,6 @@ namespace TarjimonOfficeUZ.Setup.Preflight
     internal static class OwnOnlyInstaller
     {
         private const string OwnDisplayName = "Tarjimon Office UZ";
-        private const string OwnSetupDisplayName = "TarjimonOfficeUZ.Setup";
         private const string OwnPublisher = "Dostonjon Ashurov";
 
         [STAThread]
@@ -33,7 +32,7 @@ namespace TarjimonOfficeUZ.Setup.Preflight
                         "Tarjimon Office UZ allaqachon o'rnatilgan.\n\n" +
                         "O'rnatilgan versiya: " + version + "\n" +
                         "O'rnatilgan joy: " + location + "\n\n" +
-                        "Eski versiyani olib tashlab, yangi versiyani o'rnatishga rozimisiz?";
+                        "Yangi versiyani o'rnatishga rozimisiz?";
 
                     var answer = MessageBox.Show(
                         message,
@@ -44,18 +43,11 @@ namespace TarjimonOfficeUZ.Setup.Preflight
 
                     if (answer != DialogResult.Yes)
                         return 0;
-
-                    if (!TryUninstall(own))
-                    {
-                        MessageBox.Show(
-                            "Eski Tarjimon Office UZ versiyasini o'chirish amalga oshmadi. Yangi versiya o'rnatilmadi.",
-                            OwnDisplayName,
-                            MessageBoxButtons.OK,
-                            MessageBoxIcon.Warning);
-                        return 1603;
-                    }
                 }
 
+                // Do not manually uninstall or call the installed product's
+                // UninstallString here. Windows Installer MajorUpgrade in the MSI
+                // is responsible for removing the previous version during install.
                 var msi = ExtractMsi();
                 using (var process = Process.Start(new ProcessStartInfo
                 {
@@ -100,108 +92,23 @@ namespace TarjimonOfficeUZ.Setup.Preflight
                     if (key == null) continue;
 
                     var displayName = Convert.ToString(key.GetValue("DisplayName")) ?? string.Empty;
-                    var publisher = Convert.ToString(key.GetValue("Publisher")) ?? string.Empty;
-                    var uninstallString = Convert.ToString(key.GetValue("QuietUninstallString")) ?? string.Empty;
-                    if (string.IsNullOrWhiteSpace(uninstallString))
-                        uninstallString = Convert.ToString(key.GetValue("UninstallString")) ?? string.Empty;
+                    if (!displayName.Equals(OwnDisplayName, StringComparison.OrdinalIgnoreCase))
+                        continue;
 
-                    if (!IsOwnProduct(displayName, publisher, keyName)) continue;
+                    var publisher = Convert.ToString(key.GetValue("Publisher")) ?? string.Empty;
+                    if (!string.IsNullOrWhiteSpace(publisher) &&
+                        !publisher.Equals(OwnPublisher, StringComparison.OrdinalIgnoreCase))
+                        continue;
 
                     return new InstalledOwnProduct
                     {
-                        DisplayName = displayName,
                         DisplayVersion = Convert.ToString(key.GetValue("DisplayVersion")) ?? string.Empty,
-                        InstallLocation = Convert.ToString(key.GetValue("InstallLocation")) ?? string.Empty,
-                        UninstallString = uninstallString,
-                        RegistryHive = hive,
-                        RegistryView = view,
-                        KeyName = keyName
+                        InstallLocation = Convert.ToString(key.GetValue("InstallLocation")) ?? string.Empty
                     };
                 }
             }
 
             return null;
-        }
-
-        private static bool IsOwnProduct(string displayName, string publisher, string keyName)
-        {
-            var name = (displayName ?? string.Empty).Trim();
-            if (name.Equals(OwnDisplayName, StringComparison.OrdinalIgnoreCase)) return true;
-            if (name.Equals(OwnSetupDisplayName, StringComparison.OrdinalIgnoreCase)) return true;
-
-            if (!string.IsNullOrWhiteSpace(publisher) &&
-                publisher.Equals(OwnPublisher, StringComparison.OrdinalIgnoreCase) &&
-                (name.IndexOf("TarjimonOfficeUZ", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                 name.IndexOf("Tarjimon Office UZ", StringComparison.OrdinalIgnoreCase) >= 0))
-                return true;
-
-            return keyName.Equals("{EF08E22E-AFAD-45D2-BB8F-4099846EDB5E}", StringComparison.OrdinalIgnoreCase);
-        }
-
-        private static bool TryUninstall(InstalledOwnProduct product)
-        {
-            // MSI products normally register UninstallString as msiexec /I{ProductCode}.
-            // /I means configure/repair, which is exactly what caused the previous
-            // "Windows configures Tarjimon Office UZ" behavior. Use /X for removal.
-            if (!string.IsNullOrWhiteSpace(product.KeyName) &&
-                product.KeyName.StartsWith("{", StringComparison.Ordinal) &&
-                product.KeyName.EndsWith("}", StringComparison.Ordinal))
-            {
-                return RunProcess(
-                    "msiexec.exe",
-                    "/x " + product.KeyName + " /qn /norestart");
-            }
-
-            if (string.IsNullOrWhiteSpace(product.UninstallString)) return false;
-
-            var uninstall = product.UninstallString.Trim();
-            var lower = uninstall.ToLowerInvariant();
-            var msiIndex = lower.IndexOf("msiexec", StringComparison.Ordinal);
-            if (msiIndex >= 0)
-            {
-                var guidStart = uninstall.IndexOf('{', msiIndex);
-                var guidEnd = guidStart >= 0 ? uninstall.IndexOf('}', guidStart) : -1;
-                if (guidStart >= 0 && guidEnd > guidStart)
-                {
-                    var productCode = uninstall.Substring(guidStart, guidEnd - guidStart + 1);
-                    return RunProcess(
-                        "msiexec.exe",
-                        "/x " + productCode + " /qn /norestart");
-                }
-            }
-
-            var psi = new ProcessStartInfo
-            {
-                FileName = "cmd.exe",
-                Arguments = "/c " + uninstall,
-                UseShellExecute = true,
-                Verb = "runas",
-                CreateNoWindow = false
-            };
-
-            using (var process = Process.Start(psi))
-            {
-                if (process == null) return false;
-                process.WaitForExit();
-                return process.ExitCode == 0;
-            }
-        }
-
-        private static bool RunProcess(string fileName, string arguments)
-        {
-            using (var process = Process.Start(new ProcessStartInfo
-            {
-                FileName = fileName,
-                Arguments = arguments,
-                UseShellExecute = true,
-                Verb = "runas",
-                CreateNoWindow = false
-            }))
-            {
-                if (process == null) return false;
-                process.WaitForExit();
-                return process.ExitCode == 0;
-            }
         }
 
         private static string ExtractMsi()
@@ -220,7 +127,8 @@ namespace TarjimonOfficeUZ.Setup.Preflight
             using (var input = typeof(OwnOnlyInstaller).Assembly.GetManifestResourceStream(resource))
             {
                 if (input == null) throw new FileNotFoundException("Embedded MSI topilmadi.");
-                using (var output = File.Create(path)) input.CopyTo(output);
+                using (var output = File.Create(path))
+                    input.CopyTo(output);
             }
 
             return path;
@@ -228,13 +136,8 @@ namespace TarjimonOfficeUZ.Setup.Preflight
 
         private sealed class InstalledOwnProduct
         {
-            public string DisplayName { get; set; }
             public string DisplayVersion { get; set; }
             public string InstallLocation { get; set; }
-            public string UninstallString { get; set; }
-            public RegistryHive RegistryHive { get; set; }
-            public RegistryView RegistryView { get; set; }
-            public string KeyName { get; set; }
         }
     }
 }
