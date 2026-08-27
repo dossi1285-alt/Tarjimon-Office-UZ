@@ -4,25 +4,16 @@
   <Fragment>
     <UI Id="TarjimonOfficeUZ_InstallDir_$(WIXUIARCH)">
       <Publish Dialog="BrowseDlg" Control="OK" Event="CheckTargetPath" Value="[WIXUI_INSTALLDIR]" Order="1" />
-      <Publish Dialog="InstallDirDlg" Control="Next" Event="CheckTargetPath" Value="[WIXUI_INSTALLDIR]" Order="1" />
-      <Publish Dialog="InstallDirDlg" Control="Next" Event="NewDialog" Value="UpgradeConfirmDlg" Order="4" Condition="TARJIMON_UPGRADE = &quot;1&quot;" />
-      <Publish Dialog="InstallDirDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg" Order="5" Condition="NOT TARJIMON_UPGRADE" />
-    </UI>
-    <UIRef Id="TarjimonOfficeUZ_InstallDir" />
-  </Fragment>
-  <?endforeach?>
+      <Publish Dialog="BrowseDlg" Control="OK" Event="DoAction" Value="WixUIValidatePath_$(WIXUIARCH)" Order="2" />
+      <Publish Dialog="BrowseDlg" Control="OK" Event="SpawnDialog" Value="InvalidDirDlg" Order="3" Condition="WIXUI_INSTALLDIR_VALID&lt;&gt;&quot;1&quot;" />
 
-  <?foreach WIXUIARCH in X86;X64;A64 ?>
-  <Fragment>
-    <UI Id="TarjimonOfficeUZ_InstallDir_ExtendedPathValidation_$(WIXUIARCH)">
-      <Publish Dialog="BrowseDlg" Control="OK" Event="DoAction" Value="WixUIValidatePath_$(WIXUIARCH)" Order="1" />
-      <Publish Dialog="BrowseDlg" Control="OK" Event="SpawnDialog" Value="InvalidDirDlg" Order="2" Condition="WIXUI_INSTALLDIR_VALID&lt;&gt;&quot;1&quot;" />
-      <Publish Dialog="InstallDirDlg" Control="Next" Event="DoAction" Value="WixUIValidatePath_$(WIXUIARCH)" Order="1" />
-      <Publish Dialog="InstallDirDlg" Control="Next" Event="SpawnDialog" Value="InvalidDirDlg" Order="2" Condition="WIXUI_INSTALLDIR_VALID&lt;&gt;&quot;1&quot;" />
+      <Publish Dialog="InstallDirDlg" Control="Next" Event="CheckTargetPath" Value="[WIXUI_INSTALLDIR]" Order="1" />
+      <Publish Dialog="InstallDirDlg" Control="Next" Event="DoAction" Value="WixUIValidatePath_$(WIXUIARCH)" Order="2" />
+      <Publish Dialog="InstallDirDlg" Control="Next" Event="SetTargetPath" Value="[WIXUI_INSTALLDIR]" Order="3" />
       <Publish Dialog="InstallDirDlg" Control="Next" Event="NewDialog" Value="UpgradeConfirmDlg" Order="4" Condition="TARJIMON_UPGRADE = &quot;1&quot; AND WIXUI_INSTALLDIR_VALID = &quot;1&quot;" />
       <Publish Dialog="InstallDirDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg" Order="5" Condition="NOT TARJIMON_UPGRADE AND WIXUI_INSTALLDIR_VALID = &quot;1&quot;" />
     </UI>
-    <UIRef Id="TarjimonOfficeUZ_InstallDir" />
+    <UIRef Id="file TarjimonOfficeUZ_InstallDir" />
   </Fragment>
   <?endforeach?>
 
@@ -50,11 +41,10 @@
       <Publish Dialog="LicenseAgreementDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg" />
       <Publish Dialog="LicenseAgreementDlg" Control="Next" Event="NewDialog" Value="InstallDirDlg" Condition="LicenseAccepted = &quot;1&quot;" />
       <Publish Dialog="InstallDirDlg" Control="Back" Event="NewDialog" Value="LicenseAgreementDlg" />
-      <Publish Dialog="InstallDirDlg" Control="Next" Event="SetTargetPath" Value="[WIXUI_INSTALLDIR]" Order="3" />
       <Publish Dialog="InstallDirDlg" Control="ChangeFolder" Property="_BrowseProperty" Value="[WIXUI_INSTALLDIR]" Order="1" />
       <Publish Dialog="InstallDirDlg" Control="ChangeFolder" Event="SpawnDialog" Value="BrowseDlg" Order="2" />
-      <Publish Dialog="BrowseDlg" Control="OK" Event="SetTargetPath" Value="[_BrowseProperty]" Order="3" />
-      <Publish Dialog="BrowseDlg" Control="OK" Event="EndDialog" Value="Return" Order="4" />
+      <Publish Dialog="BrowseDlg" Control="OK" Event="SetTargetPath" Value="[_BrowseProperty]" Order="4" />
+      <Publish Dialog="BrowseDlg" Control="OK" Event="EndDialog" Value="Return" Order="5" />
 
       <Publish Dialog="UpgradeConfirmDlg" Control="Back" Event="NewDialog" Value="InstallDirDlg" Order="1" />
       <Publish Dialog="UpgradeConfirmDlg" Control="Yes" Event="NewDialog" Value="VerifyReadyDlg" Order="1" />
