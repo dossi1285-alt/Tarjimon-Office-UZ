@@ -7,9 +7,15 @@
       Scope="perMachine"
       UpgradeCode="6B7A9F1C-6B2A-4C8D-9F5E-1D6B6A9C7E21">
 
-    <!-- Windows Installer performs the actual major upgrade. The user-facing
-         confirmation is handled by the bootstrapper immediately before MSI starts. -->
-    <MajorUpgrade DowngradeErrorMessage="A newer version of Tarjimon Office UZ is already installed." />
+    <!--
+      The visible wizard is OwnOnlyInstaller.exe. This MSI is intentionally
+      UI-free: it is the installation engine launched by the signed/setup EXE.
+      The major upgrade is transactional so a failed upgrade can roll back
+      the removal of the previous version.
+    -->
+    <MajorUpgrade
+        Schedule="afterInstallInitialize"
+        DowngradeErrorMessage="A newer version of Tarjimon Office UZ is already installed." />
     <MediaTemplate EmbedCab="yes" />
 
     <StandardDirectory Id="ProgramFiles64Folder">
