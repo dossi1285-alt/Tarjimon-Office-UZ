@@ -31,19 +31,18 @@
     <Compile Remove="DisplayFilterRuntime.cs" />
   </ItemGroup>
 
-  <!-- Always build the Wix MSI first so the embedded MSI cannot be stale. -->
-  <Target Name="BuildCurrentWixMsi" BeforeTargets="PrepareForBuild">
+  <!-- Build the WiX MSI before CoreCompile, then add that freshly built file as the embedded resource. -->
+  <Target Name="BuildCurrentWixMsi" BeforeTargets="CoreCompile">
     <MSBuild Projects="$(MSBuildProjectDirectory)\..\TarjimonOfficeUZ.Setup.Wix\TarjimonOfficeUZ.Setup.Wix.wixproj"
              Targets="Build"
              Properties="Configuration=$(Configuration);Platform=x64" />
+    <ItemGroup>
+      <EmbeddedResource Include="$(MsiSource)" Condition="Exists('$(MsiSource)')">
+        <LogicalName>TarjimonOfficeUZSetup.msi</LogicalName>
+        <Type>Non-Resx</Type>
+      </EmbeddedResource>
+    </ItemGroup>
   </Target>
-
-  <ItemGroup Condition="'$(MsiSource)' != '' and Exists('$(MsiSource)')">
-    <EmbeddedResource Include="$(MsiSource)">
-      <LogicalName>TarjimonOfficeUZSetup.msi</LogicalName>
-      <Type>Non-Resx</Type>
-    </EmbeddedResource>
-  </ItemGroup>
 
   <!-- Keep the repository-root Setup EXE synchronized with the tested Preflight build. -->
   <Target Name="CopyFinalSetupToRepositoryRoot" AfterTargets="Build">
