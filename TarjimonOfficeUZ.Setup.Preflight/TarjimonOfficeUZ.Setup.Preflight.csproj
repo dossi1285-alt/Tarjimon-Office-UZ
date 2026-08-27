@@ -31,6 +31,13 @@
     <Compile Remove="DisplayFilterRuntime.cs" />
   </ItemGroup>
 
+  <!-- Always build the Wix MSI first so the embedded MSI cannot be stale. -->
+  <Target Name="BuildCurrentWixMsi" BeforeTargets="PrepareForBuild">
+    <MSBuild Projects="$(MSBuildProjectDirectory)\..\TarjimonOfficeUZ.Setup.Wix\TarjimonOfficeUZ.Setup.Wix.wixproj"
+             Targets="Build"
+             Properties="Configuration=$(Configuration);Platform=x64" />
+  </Target>
+
   <ItemGroup Condition="'$(MsiSource)' != '' and Exists('$(MsiSource)')">
     <EmbeddedResource Include="$(MsiSource)">
       <LogicalName>TarjimonOfficeUZSetup.msi</LogicalName>
