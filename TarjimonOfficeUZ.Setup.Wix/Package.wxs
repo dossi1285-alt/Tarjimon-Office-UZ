@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
-     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
   <Package
       Name="Tarjimon Office UZ"
       Manufacturer="Dostonjon Ashurov"
@@ -12,7 +11,8 @@
     <MediaTemplate EmbedCab="yes" />
 
     <WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
-    <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" ExtendedPathValidation="yes" />
+    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
+    <UIRef Id="TarjimonOfficeUZ_InstallDir" />
 
     <StandardDirectory Id="ProgramFiles64Folder">
       <Directory Id="INSTALLFOLDER" Name="Tarjimon Office UZ">
