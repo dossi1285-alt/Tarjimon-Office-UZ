@@ -30,19 +30,18 @@
     <Compile Remove="DisplayFilterRuntime.cs" />
   </ItemGroup>
 
-  <!-- Build WiX first, then add the freshly built MSI before .NET resource generation. -->
-  <Target Name="BuildCurrentWixMsi" BeforeTargets="PrepareResource">
-    <MSBuild Projects="$(MSBuildProjectDirectory)\..\TarjimonOfficeUZ.Setup.Wix\TarjimonOfficeUZ.Setup.Wix.wixproj"
-             Targets="Build"
-             Properties="Configuration=$(Configuration);Platform=x64" />
+  <!-- WiX MSI is a build dependency. It is built before this project and then embedded as a normal resource. -->
+  <ItemGroup>
+    <ProjectReference Include="..\TarjimonOfficeUZ.Setup.Wix\TarjimonOfficeUZ.Setup.Wix.wixproj" ReferenceOutputAssembly="false" />
+    <EmbeddedResource Include="$(MsiSource)">
+      <LogicalName>TarjimonOfficeUZSetup.msi</LogicalName>
+      <Type>Non-Resx</Type>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <Target Name="ValidateEmbeddedMsi" BeforeTargets="CoreCompile">
     <Error Condition="!Exists('$(MsiSource)')"
-           Text="Fresh MSI topilmadi: $(MsiSource)" />
-    <ItemGroup>
-      <EmbeddedResource Include="$(MsiSource)">
-        <LogicalName>TarjimonOfficeUZSetup.msi</LogicalName>
-        <Type>Non-Resx</Type>
-      </EmbeddedResource>
-    </ItemGroup>
+           Text="MSI build output topilmadi: $(MsiSource)" />
   </Target>
 
   <Target Name="CopyFinalSetupToRepositoryRoot" AfterTargets="Build">
