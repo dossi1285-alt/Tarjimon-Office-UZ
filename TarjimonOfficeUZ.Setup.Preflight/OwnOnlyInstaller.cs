@@ -60,7 +60,7 @@ namespace TarjimonOfficeUZ.Setup.Preflight
                 using (var process = Process.Start(new ProcessStartInfo
                 {
                     FileName = "msiexec.exe",
-                    Arguments = "/i \"" + msi + "\"",
+                    Arguments = "/i \"" + msi + "\" /qf",
                     UseShellExecute = true,
                     Verb = "runas"
                 }))
