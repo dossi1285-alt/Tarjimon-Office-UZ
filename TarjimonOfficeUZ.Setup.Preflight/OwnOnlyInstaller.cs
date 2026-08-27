@@ -18,41 +18,21 @@ namespace TarjimonOfficeUZ.Setup.Preflight
             Application.EnableVisualStyles();
             try
             {
+                // Do not ask about uninstall here. The user must first go through
+                // the MSI wizard (license, installation folder and final confirmation).
+                // If an older product exists, pass a public MSI property so the
+                // custom final upgrade dialog can ask for removal confirmation there.
                 var own = FindOwnProduct();
-                if (own != null)
-                {
-                    var location = string.IsNullOrWhiteSpace(own.InstallLocation)
-                        ? "Aniqlanmadi"
-                        : own.InstallLocation;
-                    var version = string.IsNullOrWhiteSpace(own.DisplayVersion)
-                        ? "Aniqlanmadi"
-                        : own.DisplayVersion;
-
-                    var message =
-                        "Tarjimon Office UZ allaqachon o'rnatilgan.\n\n" +
-                        "O'rnatilgan versiya: " + version + "\n" +
-                        "O'rnatilgan joy: " + location + "\n\n" +
-                        "Yangi versiyani o'rnatishga rozimisiz?";
-
-                    var answer = MessageBox.Show(
-                        message,
-                        OwnDisplayName + " — Yangilash",
-                        MessageBoxButtons.YesNo,
-                        MessageBoxIcon.Question,
-                        MessageBoxDefaultButton.Button2);
-
-                    if (answer != DialogResult.Yes)
-                        return 0;
-                }
-
-                // Do not manually uninstall or call the installed product's
-                // UninstallString here. Windows Installer MajorUpgrade in the MSI
-                // is responsible for removing the previous version during install.
                 var msi = ExtractMsi();
+                var arguments = "/i \"" + msi + "\" /qf";
+
+                if (own != null)
+                    arguments += " TARJIMON_UPGRADE=1";
+
                 using (var process = Process.Start(new ProcessStartInfo
                 {
                     FileName = "msiexec.exe",
-                    Arguments = "/i \"" + msi + "\" /qf",
+                    Arguments = arguments,
                     UseShellExecute = true,
                     Verb = "runas"
                 }))
