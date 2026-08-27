@@ -72,7 +72,7 @@ namespace TarjimonOfficeUZ.Setup.Preflight
                 var result = Process.Start(new ProcessStartInfo
                 {
                     FileName = "msiexec.exe",
-                    Arguments = "/i \"" + msi + "\" /passive",
+                    Arguments = "/i \"" + msi + "\"",
                     UseShellExecute = true,
                     Verb = "runas"
                 });
@@ -151,7 +151,9 @@ namespace TarjimonOfficeUZ.Setup.Preflight
             if (hasKirill && hasLatin) return true;
 
             return false;
-        }private static void ScanOfficeAddins(List<AddinCandidate> list, RegistryView[] views)
+        }
+
+        private static void ScanOfficeAddins(List<AddinCandidate> list, RegistryView[] views)
         {
             foreach (var view in views)
             foreach (var hive in new[] { RegistryHive.LocalMachine, RegistryHive.CurrentUser })
@@ -682,4 +684,3 @@ namespace TarjimonOfficeUZ.Setup.Preflight
         }
     }
 }
-
