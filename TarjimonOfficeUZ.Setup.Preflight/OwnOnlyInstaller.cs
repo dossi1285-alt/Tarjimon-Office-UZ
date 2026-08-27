@@ -140,18 +140,63 @@ namespace TarjimonOfficeUZ.Setup.Preflight
 
         private static bool TryUninstall(InstalledOwnProduct product)
         {
+            // MSI products normally register UninstallString as msiexec /I{ProductCode}.
+            // /I means configure/repair, which is exactly what caused the previous
+            // "Windows configures Tarjimon Office UZ" behavior. Use /X for removal.
+            if (!string.IsNullOrWhiteSpace(product.KeyName) &&
+                product.KeyName.StartsWith("{", StringComparison.Ordinal) &&
+                product.KeyName.EndsWith("}", StringComparison.Ordinal))
+            {
+                return RunProcess(
+                    "msiexec.exe",
+                    "/x " + product.KeyName + " /qn /norestart");
+            }
+
             if (string.IsNullOrWhiteSpace(product.UninstallString)) return false;
+
+            var uninstall = product.UninstallString.Trim();
+            var lower = uninstall.ToLowerInvariant();
+            var msiIndex = lower.IndexOf("msiexec", StringComparison.Ordinal);
+            if (msiIndex >= 0)
+            {
+                var guidStart = uninstall.IndexOf('{', msiIndex);
+                var guidEnd = guidStart >= 0 ? uninstall.IndexOf('}', guidStart) : -1;
+                if (guidStart >= 0 && guidEnd > guidStart)
+                {
+                    var productCode = uninstall.Substring(guidStart, guidEnd - guidStart + 1);
+                    return RunProcess(
+                        "msiexec.exe",
+                        "/x " + productCode + " /qn /norestart");
+                }
+            }
 
             var psi = new ProcessStartInfo
             {
                 FileName = "cmd.exe",
-                Arguments = "/c " + product.UninstallString,
+                Arguments = "/c " + uninstall,
                 UseShellExecute = true,
                 Verb = "runas",
                 CreateNoWindow = false
             };
 
             using (var process = Process.Start(psi))
+            {
+                if (process == null) return false;
+                process.WaitForExit();
+                return process.ExitCode == 0;
+            }
+        }
+
+        private static bool RunProcess(string fileName, string arguments)
+        {
+            using (var process = Process.Start(new ProcessStartInfo
+            {
+                FileName = fileName,
+                Arguments = arguments,
+                UseShellExecute = true,
+                Verb = "runas",
+                CreateNoWindow = false
+            }))
             {
                 if (process == null) return false;
                 process.WaitForExit();
