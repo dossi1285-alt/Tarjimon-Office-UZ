@@ -20,26 +20,55 @@ namespace TarjimonOfficeUZ.Setup.Preflight
             try
             {
                 var own = FindOwnProduct();
-                if (own != null && !TryUninstall(own))
+                if (own != null)
                 {
-                    MessageBox.Show(
-                        "Eski Tarjimon Office UZ versiyasini o'chirish amalga oshmadi. Yangi versiya o'rnatilmadi.",
-                        OwnDisplayName,
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Warning);
-                    return 1603;
+                    var location = string.IsNullOrWhiteSpace(own.InstallLocation)
+                        ? "Aniqlanmadi"
+                        : own.InstallLocation;
+                    var version = string.IsNullOrWhiteSpace(own.DisplayVersion)
+                        ? "Aniqlanmadi"
+                        : own.DisplayVersion;
+
+                    var message =
+                        "Tarjimon Office UZ allaqachon o'rnatilgan.\n\n" +
+                        "O'rnatilgan versiya: " + version + "\n" +
+                        "O'rnatilgan joy: " + location + "\n\n" +
+                        "Eski versiyani olib tashlab, yangi versiyani o'rnatishga rozimisiz?";
+
+                    var answer = MessageBox.Show(
+                        message,
+                        OwnDisplayName + " — Yangilash",
+                        MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Question,
+                        MessageBoxDefaultButton.Button2);
+
+                    if (answer != DialogResult.Yes)
+                        return 0;
+
+                    if (!TryUninstall(own))
+                    {
+                        MessageBox.Show(
+                            "Eski Tarjimon Office UZ versiyasini o'chirish amalga oshmadi. Yangi versiya o'rnatilmadi.",
+                            OwnDisplayName,
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Warning);
+                        return 1603;
+                    }
                 }
 
                 var msi = ExtractMsi();
-                var process = Process.Start(new ProcessStartInfo
+                using (var process = Process.Start(new ProcessStartInfo
                 {
                     FileName = "msiexec.exe",
-                    Arguments = "/i \"" + msi + "\" /passive",
+                    Arguments = "/i \"" + msi + "\"",
                     UseShellExecute = true,
                     Verb = "runas"
-                });
-
-                return process == null ? 1603 : 0;
+                }))
+                {
+                    if (process == null) return 1603;
+                    process.WaitForExit();
+                    return process.ExitCode;
+                }
             }
             catch (Exception ex)
             {
@@ -81,6 +110,8 @@ namespace TarjimonOfficeUZ.Setup.Preflight
                     return new InstalledOwnProduct
                     {
                         DisplayName = displayName,
+                        DisplayVersion = Convert.ToString(key.GetValue("DisplayVersion")) ?? string.Empty,
+                        InstallLocation = Convert.ToString(key.GetValue("InstallLocation")) ?? string.Empty,
                         UninstallString = uninstallString,
                         RegistryHive = hive,
                         RegistryView = view,
@@ -98,9 +129,6 @@ namespace TarjimonOfficeUZ.Setup.Preflight
             if (name.Equals(OwnDisplayName, StringComparison.OrdinalIgnoreCase)) return true;
             if (name.Equals(OwnSetupDisplayName, StringComparison.OrdinalIgnoreCase)) return true;
 
-            // Do not classify unrelated products from generic words such as Office,
-            // translator, converter, Microsoft, etc. The publisher/key fallback is
-            // deliberately restricted to our exact product identifiers.
             if (!string.IsNullOrWhiteSpace(publisher) &&
                 publisher.Equals(OwnPublisher, StringComparison.OrdinalIgnoreCase) &&
                 (name.IndexOf("TarjimonOfficeUZ", StringComparison.OrdinalIgnoreCase) >= 0 ||
@@ -156,6 +184,8 @@ namespace TarjimonOfficeUZ.Setup.Preflight
         private sealed class InstalledOwnProduct
         {
             public string DisplayName { get; set; }
+            public string DisplayVersion { get; set; }
+            public string InstallLocation { get; set; }
             public string UninstallString { get; set; }
             public RegistryHive RegistryHive { get; set; }
             public RegistryView RegistryView { get; set; }
