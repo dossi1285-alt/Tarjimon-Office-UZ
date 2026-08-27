@@ -25,26 +25,24 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Only the dedicated own-product installer is compiled. Legacy preflight/UI/filter sources are excluded. -->
     <Compile Remove="Program.cs" />
     <Compile Remove="ProgramV110.cs" />
     <Compile Remove="DisplayFilterRuntime.cs" />
   </ItemGroup>
 
-  <!-- Build the WiX MSI before CoreCompile, then add that freshly built file as the embedded resource. -->
+  <!-- Build the WiX MSI before CoreCompile. The freshly built MSI is then embedded. -->
   <Target Name="BuildCurrentWixMsi" BeforeTargets="CoreCompile">
     <MSBuild Projects="$(MSBuildProjectDirectory)\..\TarjimonOfficeUZ.Setup.Wix\TarjimonOfficeUZ.Setup.Wix.wixproj"
              Targets="Build"
              Properties="Configuration=$(Configuration);Platform=x64" />
     <ItemGroup>
-      <EmbeddedResource Include="$(MsiSource)" Condition="Exists('$(MsiSource)')">
+      <EmbeddedResource Include="$(MsiSource)">
         <LogicalName>TarjimonOfficeUZSetup.msi</LogicalName>
         <Type>Non-Resx</Type>
       </EmbeddedResource>
     </ItemGroup>
   </Target>
 
-  <!-- Keep the repository-root Setup EXE synchronized with the tested Preflight build. -->
   <Target Name="CopyFinalSetupToRepositoryRoot" AfterTargets="Build">
     <Copy SourceFiles="$(TargetPath)" DestinationFiles="$(MSBuildProjectDirectory)\..\TarjimonOfficeUZSetup.exe" SkipUnchangedFiles="false" />
   </Target>
