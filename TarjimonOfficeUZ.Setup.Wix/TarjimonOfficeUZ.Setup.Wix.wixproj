@@ -8,5 +8,11 @@
   <ItemGroup>
     <ProjectReference Include="..\TarjimonOfficeUZ.Word\TarjimonOfficeUZ.Word.csproj" />
     <ProjectReference Include="..\TarjimonOfficeUZ.Excel\TarjimonOfficeUZ.Excel.csproj" />
+
+    <!-- The installer UI is owned by OwnOnlyInstaller.exe.
+         Ignore any stale local CustomUI authoring left from the earlier
+         experimental WixUI implementation so it cannot break the MSI build. -->
+    <Compile Remove="TarjimonOfficeUZ.CustomUI.wxs" />
+    <Compile Remove="**\TarjimonOfficeUZ.CustomUI.wxs" />
   </ItemGroup>
 </Project>
