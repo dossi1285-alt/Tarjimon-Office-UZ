@@ -24,10 +24,12 @@ namespace TarjimonOfficeUZ.Setup.Preflight
                 // custom final upgrade dialog can ask for removal confirmation there.
                 var own = FindOwnProduct();
                 var msi = ExtractMsi();
-                var arguments = "/i \"" + msi + "\" /qf";
+                var arguments = "/i \"" + msi + "\"";
 
                 if (own != null)
                     arguments += " TARJIMON_UPGRADE=1";
+
+                arguments += " /qf";
 
                 using (var process = Process.Start(new ProcessStartInfo
                 {
