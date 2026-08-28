@@ -19,7 +19,6 @@
   </PropertyGroup>
 
   <Target Name="PublishStandaloneUninstaller" AfterTargets="Build" Condition="'$(TarjimonUninstallerPublishRunning)' != 'true'">
-    <Exec Command="dotnet publish &quot;$(MSBuildProjectFullPath)&quot; -c $(Configuration) -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false -p:TarjimonUninstallerPublishRunning=true -p:PublishDir=&quot;$(ProjectDir)obj\$(Configuration)\$(TargetFramework)\win-x64\standalone\&quot; --nologo" />
-    <Copy SourceFiles="$(ProjectDir)obj\$(Configuration)\$(TargetFramework)\win-x64\standalone\$(AssemblyName).exe" DestinationFolder="$(TargetDir)" SkipUnchangedFiles="false" />
+    <Exec Command="dotnet publish &quot;$(MSBuildProjectFullPath)&quot; -c $(Configuration) -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false -p:TarjimonUninstallerPublishRunning=true -p:PublishDir=&quot;$(TargetDir)&quot; --nologo" />
   </Target>
 </Project>
