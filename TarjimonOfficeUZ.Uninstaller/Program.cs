@@ -1,27 +1,61 @@
 using System.Diagnostics;
 using System.Windows.Automation;
+using Microsoft.Win32;
 
 namespace TarjimonOfficeUZ.Uninstaller;
 
 internal static class Program
 {
     private const string ProductName = "Tarjimon Office UZ";
+    private const int WaitSeconds = 600;
 
     [STAThread]
-    private static void Main()
+    private static int Main()
     {
-        Process.Start(new ProcessStartInfo
+        try
         {
-            FileName = "control.exe",
-            Arguments = "appwiz.cpl",
-            UseShellExecute = true
-        });
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "control.exe",
+                Arguments = "appwiz.cpl",
+                UseShellExecute = true
+            });
 
-        for (int i = 0; i < 30; i++)
+            bool started = false;
+            for (int i = 0; i < 60; i++)
+            {
+                Thread.Sleep(500);
+                if (TrySelectAndStartUninstall())
+                {
+                    started = true;
+                    break;
+                }
+            }
+
+            if (!started)
+                return 1602;
+
+            if (!IsProductInstalled())
+                return 0;
+
+            // Windows'ning o'z uninstall oynasi foydalanuvchi tomonidan
+            // boshqariladi. Bu EXE uninstallni o'zi bajarmaydi; faqat
+            // Windows'ga boshlab beradi va tugashini kutadi.
+            var deadline = DateTime.UtcNow.AddSeconds(WaitSeconds);
+            while (DateTime.UtcNow < deadline)
+            {
+                Thread.Sleep(1000);
+                if (!IsProductInstalled())
+                    return 0;
+            }
+
+            // Eski versiya hali Windows'da ro'yxatdan o'tgan bo'lsa,
+            // Setup yangi MSI'ni ishga tushirmasligi kerak.
+            return 1602;
+        }
+        catch
         {
-            Thread.Sleep(500);
-            if (TrySelectAndStartUninstall())
-                return;
+            return 1603;
         }
     }
 
@@ -83,5 +117,31 @@ internal static class Program
                 return control;
         }
         return null;
+    }
+
+    private static bool IsProductInstalled()
+    {
+        var views = Environment.Is64BitOperatingSystem
+            ? new[] { RegistryView.Registry64, RegistryView.Registry32 }
+            : new[] { RegistryView.Default };
+
+        foreach (var view in views)
+        foreach (var hive in new[] { RegistryHive.LocalMachine, RegistryHive.CurrentUser })
+        using (var root = RegistryKey.OpenBaseKey(hive, view))
+        using (var uninstall = root.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall"))
+        {
+            if (uninstall == null) continue;
+
+            foreach (var keyName in uninstall.GetSubKeyNames())
+            using (var key = uninstall.OpenSubKey(keyName))
+            {
+                if (key == null) continue;
+                var displayName = Convert.ToString(key.GetValue("DisplayName")) ?? string.Empty;
+                if (displayName.Equals(ProductName, StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+        }
+
+        return false;
     }
 }
