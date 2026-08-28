@@ -2,7 +2,6 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
-    <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AssemblyName>TarjimonOfficeUZUninstaller</AssemblyName>
@@ -12,14 +11,18 @@
     <Version>1.0.0</Version>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <FileVersion>1.0.0.0</FileVersion>
+
+    <!-- The uninstaller must run on a PC without .NET installed. -->
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <SelfContained>true</SelfContained>
+    <PublishAot>true</PublishAot>
     <PublishSingleFile>true</PublishSingleFile>
-    <PublishTrimmed>false</PublishTrimmed>
+    <StripSymbols>true</StripSymbols>
   </PropertyGroup>
 
-  <Target Name="PublishStandaloneUninstaller" AfterTargets="Build" Condition="'$(TarjimonUninstallerPublishRunning)' != 'true'">
-    <Exec Command="dotnet publish &quot;$(MSBuildProjectFullPath)&quot; -c $(Configuration) -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false -p:TarjimonUninstallerPublishRunning=true --nologo" />
-    <Copy SourceFiles="$(ProjectDir)bin\$(Configuration)\net8.0-windows\win-x64\publish\$(AssemblyName).exe" DestinationFiles="$(TargetPath)" SkipUnchangedFiles="false" />
+  <!-- A normal Rebuild is enough for the solution workflow: after the project
+       builds, publish the actual native EXE into a separate publish folder. -->
+  <Target Name="PublishNativeUninstaller" AfterTargets="Build" Condition="'$(TarjimonUninstallerPublishRunning)' != 'true'">
+    <Exec Command="dotnet publish &quot;$(MSBuildProjectFullPath)&quot; -c $(Configuration) -r win-x64 --self-contained true -p:PublishAot=true -p:PublishSingleFile=true -p:StripSymbols=true -p:TarjimonUninstallerPublishRunning=true -p:PublishDir=&quot;$(ProjectDir)bin\$(Configuration)\net8.0-windows\publish\&quot; --nologo" />
   </Target>
 </Project>
