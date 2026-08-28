@@ -3,11 +3,13 @@
     <OutputName>TarjimonOfficeUZ</OutputName>
     <InstallerPlatform>x64</InstallerPlatform>
     <DefineConstants>$(DefineConstants);ProductVersion=$(TarjimonProductVersion)</DefineConstants>
+    <BuildProjectReferences>true</BuildProjectReferences>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\TarjimonOfficeUZ.Word\TarjimonOfficeUZ.Word.csproj" />
-    <ProjectReference Include="..\TarjimonOfficeUZ.Excel\TarjimonOfficeUZ.Excel.csproj" />
+    <!-- Build Word and Excel before Wix harvests their output directories. -->
+    <ProjectReference Include="..\TarjimonOfficeUZ.Word\TarjimonOfficeUZ.Word.csproj" Targets="Build" />
+    <ProjectReference Include="..\TarjimonOfficeUZ.Excel\TarjimonOfficeUZ.Excel.csproj" Targets="Build" />
 
     <!-- The installer UI is owned by OwnOnlyInstaller.exe.
          Ignore any stale local CustomUI authoring left from the earlier
