@@ -14,4 +14,5 @@
   </Project>
   <Project Path="TarjimonOfficeUZ.Tests/TarjimonOfficeUZ.Tests.csproj" Id="a1f28fcf-7b8c-44f9-9027-d99b2194f93b" />
   <Project Path="TarjimonOfficeUZ.Word/TarjimonOfficeUZ.Word.csproj" Id="f15aeef8-8941-4a46-9bd1-b6ffb7ffe2f7" />
+  <Project Path="TarjimonOfficeUZ.Uninstaller/TarjimonOfficeUZ.Uninstaller.csproj" Id="4b2d6e7f-9a31-4c58-b7d2-1e6f8a3c5d90" />
 </Solution>
