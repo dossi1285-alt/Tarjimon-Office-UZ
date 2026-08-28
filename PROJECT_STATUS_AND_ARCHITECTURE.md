@@ -13,14 +13,16 @@
 
 ## 2. Hozirgacha tasdiqlangan muvaffaqiyatli natijalar
 
-### Testlar
-
 - Dastur o‘rnatilishi va Word/Excel bilan ishlashi bo‘yicha oldingi testlar muvaffaqiyatli o‘tgan.
 - Versiya ko‘rsatish bilan bog‘liq muammolar tekshirilgan va versiya qiymatlarini markazlashtirish zarurligi aniqlangan.
 - Windows `Программы и компоненты` orqali qo‘lda uninstall qilish sinovdan o‘tgan: dastur ham, Word/Excel add-inlari ham to‘liq o‘chgan.
-- **18-test — muvaffaqiyatli.** Yangi mustaqil Uninstaller EXE ishga tushirildi; u Windows `Программы и компоненты` oynasini ochdi, `Tarjimon Office UZ`ni topdi/tanladi va `Удалить` jarayonini boshladi. Keyingi `Да/Нет/Далее` qarorlari foydalanuvchiga qoldi. Windows Installer orqali dastur va Word/Excel add-inlari to‘liq o‘chirildi.
-- WiX/MSI build tartibi bilan bog‘liq xato tuzatildi; `Перестроить решение` natijasida 8 ta loyiha muvaffaqiyatli build bo‘lgan holat tasdiqlandi.
+- **18-test — muvaffaqiyatli.** Mustaqil Uninstaller EXE Windows `Программы и компоненты` oynasini ochdi, `Tarjimon Office UZ`ni topdi/tanladi va `Удалить` jarayonini boshladi. Keyingi `Да/Нет/Далее` qarorlari foydalanuvchiga qoldi. Windows Installer orqali dastur va Word/Excel add-inlari to‘liq o‘chirildi.
+- WiX/MSI build tartibi bilan bog‘liq xato tuzatildi; Rebuild'da 8 ta loyiha muvaffaqiyatli build bo‘lgan holat tasdiqlandi.
 - `main` va `release/1.0-installer-cleanup` tarixidagi kerakli ishlar birlashtirildi; ortiqcha/restored variantlar olib tashlandi.
+- Setup'dagi eski MSI uninstall oqimi source darajasida olib tashlandi.
+- Yangi Setup oqimi uchun `InstallerFlow.cs` yaratildi.
+- Setup Preflight endi 18-testdan o‘tgan Uninstaller EXE'ni build vaqtida publish qilib, Setup EXE ichiga embedded resource sifatida qo‘shishga tayyorlangan.
+- Setup'ning startup object'i yangi `InstallerFlow`ga o‘tkazildi.
 
 ## 3. Hozirgi loyiha strukturasi
 
@@ -31,19 +33,22 @@ Tarjimon-Office-UZ
 ├── TarjimonOfficeUZ.Excel
 ├── TarjimonOfficeUZ.Setup
 ├── TarjimonOfficeUZ.Setup.Preflight
+│   ├── DesignRuntime.cs
+│   ├── InstallerFlow.cs              ← yangi asosiy Setup oqimi
+│   └── TarjimonOfficeUZ.Setup.Preflight.csproj
 ├── TarjimonOfficeUZ.Setup.Wix
 ├── TarjimonOfficeUZ.Shared
 ├── TarjimonOfficeUZ.Tests
-├── TarjimonOfficeUZ.Uninstaller
+├── TarjimonOfficeUZ.Uninstaller       ← 18-testdan o‘tgan Uninstaller
 ├── TarjimonOfficeUZ.Word
 └── TarjimonOfficeUZ.slnx
 ```
 
+Eski `OwnOnlyInstaller.cs`, `Program.cs` va `ProgramV110.cs` olib tashlandi. `DisplayFilterRuntime.cs` ham eski installer oqimiga tegishli bo‘lgan va endi compile qilinmaydi.
+
 ## 4. 18-testdan o‘tgan Uninstaller — o‘zgarmas komponent
 
 `TarjimonOfficeUZ.Uninstaller` mustaqil EXE sifatida ishlaydi.
-
-Tasdiqlangan vazifasi:
 
 ```text
 Uninstall EXE
@@ -94,7 +99,7 @@ Boshlang‘ich tekshiruvlar
   ↓
 Eski Tarjimon Office UZ mavjud
   ↓
-Tasdiqlash:
+Bitta tasdiqlash:
 "Eski versiya mavjud. Uni o‘chirib,
 yangi versiyani o‘rnatishga rozimisiz?"
   ↓
@@ -131,31 +136,34 @@ Setup yakunlanadi
 
 ## 6. Muhim arxitektura qarorlari
 
-1. **Eski Uninstaller mexanizmi kerak emas.** U butunlay chiqarib tashlanishi kerak; yangi 18-testdan o‘tgan Uninstaller ishlatiladi.
+1. **Eski Uninstaller mexanizmi kerak emas.** Eski Setup MSI `/x` oqimi olib tashlandi.
 2. Setup eski versiyani topganda, avval foydalanuvchidan **bitta rozilik tasdig‘i** so‘raydi.
-3. **HA** bo‘lsa — yangi Uninstaller ishga tushadi.
-4. Uninstaller tugagach — Setup yangi o‘rnatishni davom ettiradi.
+3. **HA** bo‘lsa — 18-testdan o‘tgan yangi Uninstaller embedded EXE sifatida chiqarilib ishga tushiriladi.
+4. Uninstaller jarayoni tugagach — Setup yangi o‘rnatishni davom ettiradi.
 5. **YO‘Q** bo‘lsa — Setup o‘rnatishni to‘liq bekor qiladi.
-6. Eski uninstall tugagandan keyin alohida `4. Windows Installer` va `5. Setup davom etadi` kabi foydalanuvchiga ko‘rinadigan mustaqil etaplar yo‘q; ular oqimning ichki qismi.
-7. Yangi o‘rnatish tugagach, foydalanuvchiga aniq yakuniy xabar chiqadi:
+6. Eski uninstall uchun `msiexec /x {ProductCode}` endi Setup oqimida ishlatilmaydi.
+7. Yangi o‘rnatish tugagach:
    **`Tarjimon Office UZ muvaffaqiyatli o‘rnatildi.`**
-   va **`OK`** tugmasi.
+   va **`OK`** tugmasi chiqadi.
 8. `OK` bosilgach Setup tugaydi.
 
-## 7. Keyingi ish — HOZIRGI ETAP
+## 7. HOZIRGI ETAP
 
-**Etap: 19-testga tayyorgarlik — Setup ichidagi eski uninstall oqimini yangi Uninstaller bilan almashtirish.**
+**Etap: 19-testga tayyorgarlik — Setup ichidagi eski uninstall oqimi yangi Uninstaller bilan almashtirildi.**
 
-Hali bajarilmagan:
+Kod GitHub'da tayyor. Endi lokal tekshiruv kerak:
 
-- Setup'dagi eski uninstall kodining barcha joylarini inventarizatsiya qilish.
-- Keraksiz eski uninstall fayllari/kodlarini olib tashlash.
-- Eski versiya aniqlanganda yangi Uninstaller'ni chaqirish.
-- HA/YO‘Q tasdiqlash oqimini qo‘shish.
-- Uninstaller tugagach Setup'ning yangi install oqimini davom ettirish.
-- YO‘Q bo‘lsa Setup'ni bekor qilish.
-- Yakuniy muvaffaqiyat xabari + `OK`ni qo‘shish.
-- Bularni qilgandan keyin **19-test: reinstall**.
-- Keyin **20-test: boshqa/toza kompyuterda yakuniy end-to-end test**.
+1. `Pull origin`
+2. Visual Studio 2026'da `Сборка → Перестроить решение`
+3. Build xatosi bo‘lmasa Setup EXE'ni olish.
+4. Eski Tarjimon Office UZ o‘rnatilgan kompyuterda yangi Setup'ni ishga tushirish.
+5. Eski versiya borligi aniqlanganda **bitta HA/YO‘Q tasdig‘i** chiqishini tekshirish.
+6. **HA** → 18-testdan o‘tgan Uninstaller ochilishini tekshirish.
+7. Windows uninstall oynasidagi foydalanuvchi tasdiqlarini bajarish.
+8. Eski dastur va Word/Excel add-inlari o‘chganidan keyin yangi install davom etishini tekshirish.
+9. Yakunda `Tarjimon Office UZ muvaffaqiyatli o‘rnatildi.` + `OK` chiqishini tekshirish.
+10. **YO‘Q** varianti ham alohida tekshiriladi: Setup bekor bo‘lishi va yangi dastur o‘rnatilmasligi kerak.
 
-> **Eslatma:** Ushbu bosqichda 18-testdan muvaffaqiyatli o‘tgan Uninstaller mexanizmini o‘zboshimchalik bilan o‘zgartirmaslik kerak. Avval Setup'dagi eski uninstall oqimi aniqlanadi, keyin faqat kerakli joylar almashtiriladi.
+Shundan keyin bu **19-test** sifatida qayd qilinadi. Keyingi bosqich — **20-test: boshqa/toza kompyuterda yakuniy end-to-end test**.
+
+> Muhim: 18-testdan o‘tgan Uninstaller'ning ichki mexanizmi o‘zgartirilmagan. Setup unga faqat embedded EXE sifatida murojaat qiladi.
