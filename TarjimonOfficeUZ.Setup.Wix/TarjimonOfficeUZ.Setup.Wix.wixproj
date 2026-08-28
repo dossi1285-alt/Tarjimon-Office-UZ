@@ -2,7 +2,7 @@
   <PropertyGroup>
     <OutputName>TarjimonOfficeUZ</OutputName>
     <InstallerPlatform>x64</InstallerPlatform>
-    <DefineConstants>$(DefineConstants);ProductVersion=1.0.0</DefineConstants>
+    <DefineConstants>$(DefineConstants);ProductVersion=$(TarjimonProductVersion)</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
