@@ -12,17 +12,15 @@
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <FileVersion>1.0.0.0</FileVersion>
 
-    <!-- The uninstaller must run on a PC without .NET installed. -->
+    <!-- Native AOT produces a native executable that does not require .NET on the target PC. -->
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <SelfContained>true</SelfContained>
     <PublishAot>true</PublishAot>
-    <PublishSingleFile>true</PublishSingleFile>
     <StripSymbols>true</StripSymbols>
   </PropertyGroup>
 
-  <!-- A normal Rebuild is enough for the solution workflow: after the project
-       builds, publish the actual native EXE into a separate publish folder. -->
+  <!-- A normal Rebuild publishes the native uninstaller into a separate publish folder. -->
   <Target Name="PublishNativeUninstaller" AfterTargets="Build" Condition="'$(TarjimonUninstallerPublishRunning)' != 'true'">
-    <Exec Command="dotnet publish &quot;$(MSBuildProjectFullPath)&quot; -c $(Configuration) -r win-x64 --self-contained true -p:PublishAot=true -p:PublishSingleFile=true -p:StripSymbols=true -p:TarjimonUninstallerPublishRunning=true -p:PublishDir=&quot;$(ProjectDir)bin\$(Configuration)\net8.0-windows\publish\&quot; --nologo" />
+    <Exec Command="dotnet publish &quot;$(MSBuildProjectFullPath)&quot; -c $(Configuration) -r win-x64 --self-contained true -p:PublishAot=true -p:StripSymbols=true -p:TarjimonUninstallerPublishRunning=true -p:PublishDir=&quot;$(ProjectDir)bin\$(Configuration)\net8.0-windows\publish\&quot; --nologo" />
   </Target>
 </Project>
