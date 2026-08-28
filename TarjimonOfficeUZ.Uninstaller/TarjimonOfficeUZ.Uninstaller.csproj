@@ -12,15 +12,16 @@
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <FileVersion>1.0.0.0</FileVersion>
 
-    <!-- Native AOT produces a native executable that does not require .NET on the target PC. -->
+    <!-- Self-contained single-file EXE: no .NET runtime is required on the target PC. -->
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <SelfContained>true</SelfContained>
-    <PublishAot>true</PublishAot>
-    <StripSymbols>true</StripSymbols>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <PublishTrimmed>false</PublishTrimmed>
   </PropertyGroup>
 
-  <!-- A normal Rebuild publishes the native uninstaller into a separate publish folder. -->
-  <Target Name="PublishNativeUninstaller" AfterTargets="Build" Condition="'$(TarjimonUninstallerPublishRunning)' != 'true'">
-    <Exec Command="dotnet publish &quot;$(MSBuildProjectFullPath)&quot; -c $(Configuration) -r win-x64 --self-contained true -p:PublishAot=true -p:StripSymbols=true -p:TarjimonUninstallerPublishRunning=true -p:PublishDir=&quot;$(ProjectDir)bin\$(Configuration)\net8.0-windows\publish\&quot; --nologo" />
+  <!-- A normal Rebuild publishes the standalone uninstaller into the publish folder. -->
+  <Target Name="PublishStandaloneUninstaller" AfterTargets="Build" Condition="'$(TarjimonUninstallerPublishRunning)' != 'true'">
+    <Exec Command="dotnet publish &quot;$(MSBuildProjectFullPath)&quot; -c $(Configuration) -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:PublishTrimmed=false -p:TarjimonUninstallerPublishRunning=true -p:PublishDir=&quot;$(ProjectDir)bin\$(Configuration)\net8.0-windows\publish\&quot; --nologo" />
   </Target>
 </Project>
