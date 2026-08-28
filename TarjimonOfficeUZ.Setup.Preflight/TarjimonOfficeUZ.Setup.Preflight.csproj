@@ -1,0 +1,64 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <RootNamespace>TarjimonOfficeUZ.Setup.Preflight</RootNamespace>
+    <AssemblyName>TarjimonOfficeUZSetup</AssemblyName>
+    <StartupObject>TarjimonOfficeUZ.Setup.Preflight.OwnOnlyInstaller</StartupObject>
+    <MsiSource>..\TarjimonOfficeUZ.Setup.Wix\bin\$(Configuration)\TarjimonOfficeUZ.msi</MsiSource>
+    <PlatformTarget>x64</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
+    <LangVersion>9.0</LangVersion>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <AssemblyTitle>Tarjimon Office UZ</AssemblyTitle>
+    <AssemblyProduct>Tarjimon Office UZ</AssemblyProduct>
+    <AssemblyCompany>Dostonjon Ashurov</AssemblyCompany>
+    <Description>Microsoft Office tarjimonlarini aniqlash va boshqarish vositasi.</Description>
+    <Copyright>© 2026 Dostonjon Ashurov</Copyright>
+    <Version>$(TarjimonProductVersion)</Version>
+    <AssemblyVersion>$(TarjimonProductVersion).0</AssemblyVersion>
+    <FileVersion>$(TarjimonProductVersion).0</FileVersion>
+    <InformationalVersion>$(TarjimonProductVersion)</InformationalVersion>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+
+    <!-- The final Setup EXE embeds the MSI. Do not let Visual Studio's fast
+         up-to-date check reuse an older Preflight EXE after the MSI changes. -->
+    <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Program.cs" />
+    <Compile Remove="ProgramV110.cs" />
+    <Compile Remove="DisplayFilterRuntime.cs" />
+  </ItemGroup>
+
+  <!-- Build the WiX MSI explicitly before .NET resource generation. A direct
+       ProjectReference to the native wixproj is intentionally avoided because
+       MSBuild cannot use that project as a .NET Framework reference. -->
+  <Target Name="BuildEmbeddedMsi" BeforeTargets="PrepareResources">
+    <MSBuild
+      Projects="..\TarjimonOfficeUZ.Setup.Wix\TarjimonOfficeUZ.Setup.Wix.wixproj"
+      Targets="Build"
+      Properties="Configuration=$(Configuration);Platform=x64" />
+    <Error Condition="!Exists('$(MsiSource)')"
+           Text="MSI build output topilmadi: $(MsiSource)" />
+  </Target>
+
+  <ItemGroup>
+    <EmbeddedResource Include="$(MsiSource)">
+      <LogicalName>TarjimonOfficeUZSetup.msi</LogicalName>
+      <Type>Non-Resx</Type>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <Target Name="CopyFinalSetupToRepositoryRoot" AfterTargets="Build">
+    <Copy SourceFiles="$(TargetPath)" DestinationFiles="$(MSBuildProjectDirectory)\..\TarjimonOfficeUZSetup.exe" SkipUnchangedFiles="false" />
+  </Target>
+</Project>

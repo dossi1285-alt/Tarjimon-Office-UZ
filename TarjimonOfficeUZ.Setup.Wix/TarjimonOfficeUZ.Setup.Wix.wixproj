@@ -1,0 +1,20 @@
+<Project Sdk="WixToolset.Sdk/7.0.0">
+  <PropertyGroup>
+    <OutputName>TarjimonOfficeUZ</OutputName>
+    <InstallerPlatform>x64</InstallerPlatform>
+    <DefineConstants>$(DefineConstants);ProductVersion=$(TarjimonProductVersion)</DefineConstants>
+    <BuildProjectReferences>true</BuildProjectReferences>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Build Word and Excel before Wix harvests their output directories. -->
+    <ProjectReference Include="..\TarjimonOfficeUZ.Word\TarjimonOfficeUZ.Word.csproj" Targets="Build" />
+    <ProjectReference Include="..\TarjimonOfficeUZ.Excel\TarjimonOfficeUZ.Excel.csproj" Targets="Build" />
+
+    <!-- The installer UI is owned by OwnOnlyInstaller.exe.
+         Ignore any stale local CustomUI authoring left from the earlier
+         experimental WixUI implementation so it cannot break the MSI build. -->
+    <Compile Remove="TarjimonOfficeUZ.CustomUI.wxs" />
+    <Compile Remove="**\TarjimonOfficeUZ.CustomUI.wxs" />
+  </ItemGroup>
+</Project>

@@ -80,6 +80,8 @@
     DefineConstants
       Constants defined for the preprocessor.
     EnableUnmanagedDebugging
+      If "true", create symbols (.pdb). If "false", do not create symbols.
+    EnableUnmanagedDebugging
       If "true", starting the debugger will attach both managed and unmanaged debuggers.
     Optimize
       If "true", optimize the build output. If "false", do not optimize.
@@ -178,7 +180,7 @@
     This section defines the user source files that are part of the project.
      
     A "Compile" element specifies a source file to compile.
-    An "EmbeddedResource" element specifies an .resx file for embedded resources.
+    An "EmbeddedResource" element specifies a .resx file for embedded resources.
     A "None" element specifies a file that is not to be passed to the compiler (for instance, 
     a text file or XML file).
     The "AppDesigner" element specifies the directory where the application properties files
@@ -223,7 +225,7 @@
     <Compile Include="ThisAddIn.cs">
       <SubType>Code</SubType>
     </Compile>
-    <None Include="TarjimonOfficeUZ.Word_TemporaryKey.pfx" />
+    <None Include="TarjimonOfficeUZ.Word_ReleaseKey.pfx" />
     <None Include="ThisAddIn.Designer.xml">
       <DependentUpon>ThisAddIn.cs</DependentUpon>
     </None>
@@ -257,13 +259,7 @@
     <SignAssembly>false</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyOriginatorKeyFile>TarjimonOfficeUZ.Word_TemporaryKey.pfx</AssemblyOriginatorKeyFile>
-  </PropertyGroup>
-  <PropertyGroup>
-    <ManifestKeyFile>TarjimonOfficeUZ.Word_TemporaryKey.pfx</ManifestKeyFile>
-  </PropertyGroup>
-  <PropertyGroup>
-    <ManifestCertificateThumbprint>45CC67286B27C54533CADD8862FF0793C4F14E02</ManifestCertificateThumbprint>
+    <ManifestCertificateThumbprint>C79456EA36C82302C9A1CCBC8E34971773367BEB</ManifestCertificateThumbprint>
   </PropertyGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- Include additional build rules for an Office application add-in. -->
