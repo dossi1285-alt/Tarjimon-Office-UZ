@@ -15,6 +15,7 @@ namespace TarjimonOfficeUZ.Setup.Preflight
         private const string ProductPublisher = "Dostonjon Ashurov";
         private const string DefaultFolderName = "Tarjimon Office UZ";
         private const string UninstallerResourceSuffix = "TarjimonOfficeUZUninstaller.exe";
+        private const string LicenseResourceSuffix = "TarjimonOfficeUZLicense.rtf";
 
         [STAThread]
         private static int Main()
@@ -114,6 +115,16 @@ namespace TarjimonOfficeUZ.Setup.Preflight
             return path;
         }
 
+        private static string ReadEmbeddedText(string suffix)
+        {
+            var resource = typeof(InstallerFlow).Assembly.GetManifestResourceNames()
+                .FirstOrDefault(x => x.EndsWith(suffix, StringComparison.OrdinalIgnoreCase));
+            if (resource == null) return string.Empty;
+            using (var input = typeof(InstallerFlow).Assembly.GetManifestResourceStream(resource))
+            using (var reader = new StreamReader(input))
+                return reader.ReadToEnd();
+        }
+
         private static int RunMsiInstall(string msiPath, string folder)
         {
             using (var process = Process.Start(new ProcessStartInfo
@@ -140,7 +151,8 @@ namespace TarjimonOfficeUZ.Setup.Preflight
                 {
                     FileName = path,
                     UseShellExecute = true,
-                    Verb = "runas"
+                    Verb = "runas",
+                    CreateNoWindow = true
                 }))
                 {
                     if (process == null) return 1603;
@@ -201,6 +213,7 @@ namespace TarjimonOfficeUZ.Setup.Preflight
                 _title.Location = new Point(28, 22);
                 _title.AutoSize = true;
                 Controls.Add(_title);
+
                 _content.Location = new Point(28, 70);
                 _content.Size = new Size(664, 285);
                 Controls.Add(_content);
@@ -233,7 +246,7 @@ namespace TarjimonOfficeUZ.Setup.Preflight
                 if (_page == 0) RenderRequirements();
                 else if (_page == 1) RenderLicense();
                 else if (_page == 2) RenderFolder();
-                else if (_page == 3) RenderConfirm();
+                else if (_page == 3) RenderOldVersion();
                 else if (_page == 4) RenderInstalling();
                 else RenderDone();
             }
@@ -247,56 +260,100 @@ namespace TarjimonOfficeUZ.Setup.Preflight
                     "• Microsoft Excel: " + (_requirements.Excel ? "aniqlandi" : "aniqlanmadi") + "\r\n\r\n" +
                     (_requirements.Office ? "Office muhiti aniqlandi." : "Diqqat: Word/Excel aniqlanmadi."));
                 _next.Text = "Далее >";
-                _next.Enabled = true;
+                _next.Enabled = _requirements.Windows64;
             }
 
             private void RenderLicense()
             {
                 _title.Text = "Texnik/dasturiy shartlarga rozilik";
-                AddText("Dastur o‘rnatilishi uchun quyidagi shartlarni qabul qilishingiz kerak:\r\n\r\n" +
-                    "• Dastur Microsoft Word va Excel bilan ishlash uchun o‘rnatiladi.\r\n" +
-                    "• O‘rnatish uchun administrator huquqi talab qilinadi.\r\n" +
-                    "• Yangilashda eski versiya avval foydalanuvchi tasdig‘i bilan o‘chiriladi.");
+
+                var terms = new RichTextBox
+                {
+                    Location = new Point(20, 5),
+                    Size = new Size(620, 190),
+                    ReadOnly = true,
+                    DetectUrls = false,
+                    ScrollBars = RichTextBoxScrollBars.Vertical,
+                    BorderStyle = BorderStyle.FixedSingle,
+                    Font = new Font("Segoe UI", 9.5f)
+                };
+
+                string rtf = ReadEmbeddedText(LicenseResourceSuffix);
+                if (!string.IsNullOrWhiteSpace(rtf))
+                    terms.Rtf = rtf;
+                else
+                    terms.Text = "Tarjimon Office UZ dasturidan foydalanish va o‘rnatish shartlari.";
+                _content.Controls.Add(terms);
+
                 _license.Text = "Roziman / qabul qilaman";
                 _license.AutoSize = true;
-                _license.Location = new Point(20, 210);
+                _license.Location = new Point(20, 215);
+                _license.Checked = true;
+                _license.CheckedChanged -= LicenseChanged;
+                _license.CheckedChanged += LicenseChanged;
                 _content.Controls.Add(_license);
+
                 _next.Text = "Далее >";
-                _next.Enabled = true;
+                _next.Enabled = _license.Checked;
+            }
+
+            private void LicenseChanged(object sender, EventArgs e)
+            {
+                if (_page == 1 && !_installing)
+                    _next.Enabled = _license.Checked;
             }
 
             private void RenderFolder()
             {
                 _title.Text = "O‘rnatish papkasi";
                 AddText("Dastur quyidagi papkaga o‘rnatiladi:");
-                _folder.Location = new Point(20, 80);
+
+                _folder.Location = new Point(20, 70);
                 _folder.Size = new Size(520, 28);
-                if (string.IsNullOrWhiteSpace(_folder.Text)) _folder.Text = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), DefaultFolderName);
+                if (string.IsNullOrWhiteSpace(_folder.Text))
+                    _folder.Text = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), DefaultFolderName);
                 _content.Controls.Add(_folder);
-                var browse = new Button { Text = "Обзор...", Location = new Point(550, 78), Size = new Size(90, 30) };
+
+                var browse = new Button
+                {
+                    Text = "Обзор...",
+                    Location = new Point(550, 68),
+                    Size = new Size(90, 30)
+                };
                 browse.Click += delegate
                 {
-                    using (var dialog = new FolderBrowserDialog { SelectedPath = Directory.Exists(_folder.Text) ? _folder.Text : Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), Description = "Tarjimon Office UZ uchun o‘rnatish papkasini tanlang." })
-                        if (dialog.ShowDialog(this) == DialogResult.OK) _folder.Text = dialog.SelectedPath;
+                    using (var dialog = new FolderBrowserDialog
+                    {
+                        SelectedPath = Directory.Exists(_folder.Text) ? _folder.Text : Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
+                        Description = "Tarjimon Office UZ uchun o‘rnatish papkasini tanlang."
+                    })
+                    {
+                        if (dialog.ShowDialog(this) == DialogResult.OK)
+                            _folder.Text = dialog.SelectedPath;
+                    }
                 };
                 _content.Controls.Add(browse);
+
+                AddTextAt("Standart papka: " + _folder.Text + "\r\n\r\nKerak bo‘lsa, «Обзор...» orqali boshqa papkani tanlang.", 20, 120, 620, 100);
                 _next.Text = "Далее >";
                 _next.Enabled = true;
             }
 
-            private void RenderConfirm()
+            private void RenderOldVersion()
             {
                 if (_own == null)
                 {
-                    _title.Text = "Tasdiqlash";
-                    AddText("O‘rnatish quyidagi joyga amalga oshiriladi:\r\n\r\n" + _folder.Text + "\r\n\r\nDavom etishni tasdiqlaysizmi?");
+                    _title.Text = "Eski versiyani tekshirish";
+                    AddText("Tarjimon Office UZ ning eski versiyasi topilmadi.\r\n\r\n" +
+                        "O‘rnatish davom ettiriladi va Windows Installer yangi versiyani o‘rnatadi.");
                 }
                 else
                 {
                     _title.Text = "Eski versiyani o‘chirish";
                     AddText("Tarjimon Office UZ allaqachon o‘rnatilgan.\r\n\r\n" +
                         "O‘rnatilgan versiya: " + (_own.DisplayVersion ?? "aniqlanmadi") + "\r\n\r\n" +
-                        "Eski versiyani o‘chirib, yangi versiyani o‘rnatishga rozimisiz?");
+                        "«Установить» tugmasini bossangiz, eski versiya Windows Installer orqali avtomatik o‘chiriladi va tugashi bilan yangi versiya o‘rnatiladi.\r\n\r\n" +
+                        "Agar davom etishni istamasangiz, «Отмена» tugmasini bosing.");
                 }
                 _next.Text = "Установить";
                 _next.Enabled = true;
@@ -305,9 +362,9 @@ namespace TarjimonOfficeUZ.Setup.Preflight
             private void RenderInstalling()
             {
                 _title.Text = "O‘rnatilmoqda";
-                AddText("Iltimos, kuting. Tarjimon Office UZ o‘rnatilmoqda...\r\n\r\nWord va Excel komponentlari o‘rnatiladi.\r\n\r\nBu oynani yopmang.");
+                AddText("Iltimos, kuting. Tarjimon Office UZ o‘rnatilmoqda...\r\n\r\nWord va Excel komponentlari o‘rnatiladi.\r\n\r\nEski versiya mavjud bo‘lsa, u Windows Installer orqali avtomatik o‘chiriladi.\r\n\r\nBu oynani yopmang.");
                 _status.Text = _own == null ? "Windows Installer ishlamoqda..." : "Eski versiya o‘chirilmoqda, keyin yangi versiya o‘rnatiladi...";
-                _status.Location = new Point(20, 205);
+                _status.Location = new Point(20, 220);
                 _status.AutoSize = true;
                 _content.Controls.Add(_status);
                 _next.Enabled = false;
@@ -326,12 +383,18 @@ namespace TarjimonOfficeUZ.Setup.Preflight
 
             private void AddText(string text)
             {
+                AddTextAt(text, 20, 10, 620, 190);
+            }
+
+            private void AddTextAt(string text, int x, int y, int width, int height)
+            {
                 _content.Controls.Add(new Label
                 {
                     Text = text,
-                    Location = new Point(20, 10),
-                    Size = new Size(620, 190),
-                    Font = new Font("Segoe UI", 10)
+                    Location = new Point(x, y),
+                    Size = new Size(width, height),
+                    Font = new Font("Segoe UI", 10),
+                    AutoSize = false
                 });
             }
 
@@ -344,8 +407,11 @@ namespace TarjimonOfficeUZ.Setup.Preflight
                         MessageBox.Show("Ushbu installer 64-bit Windows uchun mo‘ljallangan.", ProductName, MessageBoxButtons.OK, MessageBoxIcon.Error);
                         return;
                     }
-                    _page = 1; Render(); return;
+                    _page = 1;
+                    Render();
+                    return;
                 }
+
                 if (_page == 1)
                 {
                     if (!_license.Checked)
@@ -353,8 +419,11 @@ namespace TarjimonOfficeUZ.Setup.Preflight
                         MessageBox.Show("Davom etish uchun «Roziman / qabul qilaman» belgisini qo‘ying.", ProductName, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                         return;
                     }
-                    _page = 2; Render(); return;
+                    _page = 2;
+                    Render();
+                    return;
                 }
+
                 if (_page == 2)
                 {
                     if (string.IsNullOrWhiteSpace(_folder.Text))
@@ -362,8 +431,11 @@ namespace TarjimonOfficeUZ.Setup.Preflight
                         MessageBox.Show("O‘rnatish papkasini ko‘rsating.", ProductName, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                         return;
                     }
-                    _page = 3; Render(); return;
+                    _page = 3;
+                    Render();
+                    return;
                 }
+
                 if (_page == 3)
                 {
                     if (_own != null)
@@ -382,7 +454,9 @@ namespace TarjimonOfficeUZ.Setup.Preflight
                     StartInstall();
                     return;
                 }
-                if (_page == 5) DialogResult = DialogResult.OK;
+
+                if (_page == 5)
+                    DialogResult = DialogResult.OK;
             }
 
             private void StartInstall()
@@ -410,7 +484,9 @@ namespace TarjimonOfficeUZ.Setup.Preflight
                             }
                             exitCode = RunMsiInstall(_msiPath, folder);
                         }
-                        catch { }
+                        catch
+                        {
+                        }
                         BeginInvoke((Action)(delegate { FinishInstall(exitCode); }));
                     });
                 }
@@ -418,7 +494,8 @@ namespace TarjimonOfficeUZ.Setup.Preflight
                 {
                     _installing = false;
                     MessageBox.Show(ex.ToString(), ProductName + " — Installer xatosi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    _page = 3; Render();
+                    _page = 3;
+                    Render();
                 }
             }
 
@@ -428,10 +505,13 @@ namespace TarjimonOfficeUZ.Setup.Preflight
                 _installing = false;
                 if (exitCode == 0 || exitCode == 3010 || exitCode == 1641)
                 {
-                    _page = 5; Render(); return;
+                    _page = 5;
+                    Render();
+                    return;
                 }
                 MessageBox.Show("Windows Installer yoki Uninstaller xatosi. Kod: " + exitCode, ProductName + " — Installer xatosi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                _page = 3; Render();
+                _page = 3;
+                Render();
             }
         }
     }
