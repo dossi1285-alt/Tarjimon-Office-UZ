@@ -4,8 +4,9 @@
     <TargetFramework>net48</TargetFramework>
     <RootNamespace>TarjimonOfficeUZ.Setup.Preflight</RootNamespace>
     <AssemblyName>TarjimonOfficeUZSetup</AssemblyName>
-    <StartupObject>TarjimonOfficeUZ.Setup.Preflight.OwnOnlyInstaller</StartupObject>
+    <StartupObject>TarjimonOfficeUZ.Setup.Preflight.InstallerFlow</StartupObject>
     <MsiSource>..\TarjimonOfficeUZ.Setup.Wix\bin\$(Configuration)\TarjimonOfficeUZ.msi</MsiSource>
+    <UninstallerSource>..\TarjimonOfficeUZ.Uninstaller\bin\$(Configuration)\net8.0-windows\publish\TarjimonOfficeUZUninstaller.exe</UninstallerSource>
     <PlatformTarget>x64</PlatformTarget>
     <Prefer32Bit>false</Prefer32Bit>
     <LangVersion>9.0</LangVersion>
@@ -20,9 +21,6 @@
     <FileVersion>$(TarjimonProductVersion).0</FileVersion>
     <InformationalVersion>$(TarjimonProductVersion)</InformationalVersion>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
-
-    <!-- The final Setup EXE embeds the MSI. Do not let Visual Studio's fast
-         up-to-date check reuse an older Preflight EXE after the MSI changes. -->
     <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
   </PropertyGroup>
 
@@ -37,11 +35,14 @@
     <Compile Remove="Program.cs" />
     <Compile Remove="ProgramV110.cs" />
     <Compile Remove="DisplayFilterRuntime.cs" />
+    <Compile Remove="OwnOnlyInstaller.cs" />
   </ItemGroup>
 
-  <!-- Build the WiX MSI explicitly before .NET resource generation. A direct
-       ProjectReference to the native wixproj is intentionally avoided because
-       MSBuild cannot use that project as a .NET Framework reference. -->
+  <Target Name="BuildEmbeddedUninstaller" BeforeTargets="PrepareResources">
+    <Exec Command="dotnet publish &quot;$(MSBuildProjectDirectory)\..\TarjimonOfficeUZ.Uninstaller\TarjimonOfficeUZ.Uninstaller.csproj&quot; -c $(Configuration) -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:PublishTrimmed=false -p:TarjimonUninstallerPublishRunning=true -p:PublishDir=&quot;$(MSBuildProjectDirectory)\..\TarjimonOfficeUZ.Uninstaller\bin\$(Configuration)\net8.0-windows\publish\&quot; --nologo" />
+    <Error Condition="!Exists('$(UninstallerSource)')" Text="Uninstaller build output topilmadi: $(UninstallerSource)" />
+  </Target>
+
   <Target Name="BuildEmbeddedMsi" BeforeTargets="PrepareResources">
     <MSBuild
       Projects="..\TarjimonOfficeUZ.Setup.Wix\TarjimonOfficeUZ.Setup.Wix.wixproj"
@@ -54,6 +55,10 @@
   <ItemGroup>
     <EmbeddedResource Include="$(MsiSource)">
       <LogicalName>TarjimonOfficeUZSetup.msi</LogicalName>
+      <Type>Non-Resx</Type>
+    </EmbeddedResource>
+    <EmbeddedResource Include="$(UninstallerSource)">
+      <LogicalName>TarjimonOfficeUZUninstaller.exe</LogicalName>
       <Type>Non-Resx</Type>
     </EmbeddedResource>
   </ItemGroup>
