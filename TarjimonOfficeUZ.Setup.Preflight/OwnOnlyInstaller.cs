@@ -251,16 +251,19 @@ namespace TarjimonOfficeUZ.Setup.Preflight
                 AddText("Dastur quyidagi papkaga o‘rnatiladi. Kerak bo‘lsa, «Обзор...» orqali o‘zgartiring:");
                 _folder.Location = new Point(20, 80);
                 _folder.Size = new Size(520, 28);
+                _folder.Visible = true;
                 if (string.IsNullOrWhiteSpace(_folder.Text))
                     _folder.Text = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), DefaultFolderName);
                 _content.Controls.Add(_folder);
-                var browse = new Button { Text = "Обзор...", Location = new Point(550, 78), Size = new Size(90, 30) };
+                _folder.BringToFront();
+                var browse = new Button { Text = "Обзор...", Location = new Point(550, 78), Size = new Size(90, 30), Visible = true };
                 browse.Click += delegate
                 {
                     using (var dialog = new FolderBrowserDialog { SelectedPath = Directory.Exists(_folder.Text) ? _folder.Text : Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), Description = "Tarjimon Office UZ uchun o‘rnatish papkasini tanlang." })
                         if (dialog.ShowDialog(this) == DialogResult.OK) _folder.Text = dialog.SelectedPath;
                 };
                 _content.Controls.Add(browse);
+                browse.BringToFront();
                 _next.Text = "Далее >";
                 _next.Enabled = true;
             }
@@ -440,6 +443,12 @@ namespace TarjimonOfficeUZ.Setup.Preflight
 
             private void FinishInstall(int exitCode)
             {
+                try
+                {
+                    if (!string.IsNullOrWhiteSpace(_msiPath) && File.Exists(_msiPath)) File.Delete(_msiPath);
+                }
+                catch { }
+
                 _installing = false;
                 if (exitCode == 0 || exitCode == 3010)
                 {
@@ -448,7 +457,8 @@ namespace TarjimonOfficeUZ.Setup.Preflight
                     return;
                 }
 
-                MessageBox.Show("Windows Installer xatosi. Kod: " + exitCode, OwnDisplayName + " — Installer xatosi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Windows Installer xatosi. Kod: " + exitCode,
+                    OwnDisplayName + " — Installer xatosi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 _page = 3;
                 Render();
             }
