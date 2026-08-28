@@ -57,8 +57,11 @@ namespace TarjimonOfficeUZ.Setup.Preflight
                     if (!string.IsNullOrWhiteSpace(publisher) &&
                         !publisher.Equals(OwnPublisher, StringComparison.OrdinalIgnoreCase)) continue;
 
+                    Guid productCode;
+                    var hasProductCode = Guid.TryParse(keyName, out productCode) && keyName.StartsWith("{", StringComparison.Ordinal);
                     return new InstalledOwnProduct
                     {
+                        ProductCode = hasProductCode ? productCode.ToString("B") : string.Empty,
                         DisplayVersion = Convert.ToString(key.GetValue("DisplayVersion")) ?? string.Empty,
                         InstallLocation = Convert.ToString(key.GetValue("InstallLocation")) ?? string.Empty
                     };
@@ -125,6 +128,7 @@ namespace TarjimonOfficeUZ.Setup.Preflight
 
         private sealed class InstalledOwnProduct
         {
+            public string ProductCode { get; set; }
             public string DisplayVersion { get; set; }
             public string InstallLocation { get; set; }
         }
@@ -221,6 +225,7 @@ namespace TarjimonOfficeUZ.Setup.Preflight
                     "• Microsoft Excel: " + (_requirements.Excel ? "aniqlandi" : "aniqlanmadi") + "\r\n\r\n" +
                     (_requirements.Office ? "Office muhiti aniqlandi." : "Diqqat: Word/Excel aniqlanmadi. O‘rnatishni davom ettirish mumkin, lekin qo‘shimcha ishlashi uchun Office kerak."));
                 _next.Text = "Далее >";
+                _next.Enabled = true;
             }
 
             private void RenderLicense()
@@ -237,6 +242,7 @@ namespace TarjimonOfficeUZ.Setup.Preflight
                 _license.Checked = false;
                 _content.Controls.Add(_license);
                 _next.Text = "Далее >";
+                _next.Enabled = true;
             }
 
             private void RenderFolder()
@@ -256,6 +262,7 @@ namespace TarjimonOfficeUZ.Setup.Preflight
                 };
                 _content.Controls.Add(browse);
                 _next.Text = "Далее >";
+                _next.Enabled = true;
             }
 
             private void RenderConfirm()
@@ -270,6 +277,7 @@ namespace TarjimonOfficeUZ.Setup.Preflight
                       "Eski versiyani olib tashlab, yangi versiyani o‘rnatishga rozimisiz?";
                 AddText(text);
                 _next.Text = "Установить";
+                _next.Enabled = true;
             }
 
             private void RenderInstalling()
@@ -359,6 +367,23 @@ namespace TarjimonOfficeUZ.Setup.Preflight
                 }
             }
 
+            private static int RunMsi(string arguments)
+            {
+                using (var process = Process.Start(new ProcessStartInfo
+                {
+                    FileName = "msiexec.exe",
+                    Arguments = arguments,
+                    UseShellExecute = true,
+                    Verb = "runas",
+                    CreateNoWindow = true
+                }))
+                {
+                    if (process == null) return 1603;
+                    process.WaitForExit();
+                    return process.ExitCode;
+                }
+            }
+
             private void StartInstall()
             {
                 if (_own != null)
@@ -379,28 +404,25 @@ namespace TarjimonOfficeUZ.Setup.Preflight
                 {
                     _msiPath = ExtractMsi();
                     var folder = _folder.Text.Trim().TrimEnd('\\');
-                    var arguments = "/i \"" + _msiPath + "\" /qn /norestart INSTALLFOLDER=\"" + folder + "\"";
 
                     Task.Run(delegate
                     {
                         int exitCode = 1603;
                         try
                         {
-                            using (var process = Process.Start(new ProcessStartInfo
+                            if (_own != null && !string.IsNullOrWhiteSpace(_own.ProductCode))
                             {
-                                FileName = "msiexec.exe",
-                                Arguments = arguments,
-                                UseShellExecute = true,
-                                Verb = "runas",
-                                CreateNoWindow = true
-                            }))
-                            {
-                                if (process != null)
+                                var uninstallCode = RunMsi("/x " + _own.ProductCode + " /qn /norestart");
+                                if (uninstallCode != 0 && uninstallCode != 3010)
                                 {
-                                    process.WaitForExit();
-                                    exitCode = process.ExitCode;
+                                    exitCode = uninstallCode;
+                                    BeginInvoke((Action)(delegate { FinishInstall(exitCode); }));
+                                    return;
                                 }
                             }
+
+                            var arguments = "/i \"" + _msiPath + "\" /qn /norestart INSTALLFOLDER=\"" + folder + "\"";
+                            exitCode = RunMsi(arguments);
                         }
                         catch { }
 
