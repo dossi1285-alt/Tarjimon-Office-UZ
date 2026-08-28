@@ -17,8 +17,6 @@ internal static class Program
             UseShellExecute = true
         });
 
-        // Wait for Programs and Features, select our product, then invoke
-        // Windows' own Удалить command. All later confirmations remain with the user.
         for (int i = 0; i < 30; i++)
         {
             Thread.Sleep(500);
@@ -36,25 +34,18 @@ internal static class Program
                 new PropertyCondition(AutomationElement.NameProperty, "Программы и компоненты"),
                 new PropertyCondition(AutomationElement.NameProperty, "Programs and Features")));
 
-        if (window == null)
-            return false;
+        if (window == null) return false;
 
         AutomationElement? item = FindProductItem(window);
-        if (item == null)
-            return false;
-
-        if (!item.TryGetCurrentPattern(SelectionItemPattern.Pattern, out object selectionObject))
-            return false;
+        if (item == null) return false;
+        if (!item.TryGetCurrentPattern(SelectionItemPattern.Pattern, out object selectionObject)) return false;
 
         ((SelectionItemPattern)selectionObject).Select();
         Thread.Sleep(300);
 
         AutomationElement? uninstall = FindUninstallControl(window);
-        if (uninstall == null)
-            return false;
-
-        if (!uninstall.TryGetCurrentPattern(InvokePattern.Pattern, out object invokeObject))
-            return false;
+        if (uninstall == null) return false;
+        if (!uninstall.TryGetCurrentPattern(InvokePattern.Pattern, out object invokeObject)) return false;
 
         ((InvokePattern)invokeObject).Invoke();
         return true;
@@ -70,11 +61,9 @@ internal static class Program
 
         foreach (AutomationElement element in elements)
         {
-            string name = element.Current.Name ?? string.Empty;
-            if (name.Contains(ProductName, StringComparison.OrdinalIgnoreCase))
+            if ((element.Current.Name ?? string.Empty).Contains(ProductName, StringComparison.OrdinalIgnoreCase))
                 return element;
         }
-
         return null;
     }
 
@@ -93,7 +82,6 @@ internal static class Program
                 name.Contains("Uninstall", StringComparison.OrdinalIgnoreCase))
                 return control;
         }
-
         return null;
     }
 }
