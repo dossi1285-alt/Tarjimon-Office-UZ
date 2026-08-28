@@ -15,6 +15,10 @@
     <AssemblyCompany>Dostonjon Ashurov</AssemblyCompany>
     <Description>Microsoft Office tarjimonlarini aniqlash va boshqarish vositasi.</Description>
     <Copyright>© 2026 Dostonjon Ashurov</Copyright>
+
+    <!-- The final Setup EXE embeds the MSI. Do not let Visual Studio's fast
+         up-to-date check reuse an older Preflight EXE after the MSI changes. -->
+    <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
   </PropertyGroup>
 
   <ItemGroup>
