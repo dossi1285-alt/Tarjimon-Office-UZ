@@ -9,25 +9,17 @@ internal static class Program
     private static void Main()
     {
         const string displayName = "Tarjimon Office UZ";
-        string? productCode = FindProductCode(displayName);
+        string? uninstallString = FindUninstallString(displayName);
 
-        // This utility has one job only: start Windows Installer uninstall.
-        if (string.IsNullOrWhiteSpace(productCode))
+        // This utility has one job only: invoke the same uninstall command
+        // registered by Windows for Tarjimon Office UZ.
+        if (string.IsNullOrWhiteSpace(uninstallString))
             return;
 
         try
         {
-            using Process process = Process.Start(new ProcessStartInfo
-            {
-                FileName = "msiexec.exe",
-                Arguments = $"/x {productCode} /qn /norestart",
-                UseShellExecute = true,
-                Verb = "runas"
-            })!;
-
-            // Do not exit until Windows Installer has completely finished.
-            // This prevents Office from being opened while MSI is still removing
-            // the add-in files and registrations.
+            ProcessStartInfo startInfo = BuildUninstallStartInfo(uninstallString);
+            using Process process = Process.Start(startInfo)!;
             process.WaitForExit();
         }
         catch (System.ComponentModel.Win32Exception)
@@ -36,7 +28,7 @@ internal static class Program
         }
     }
 
-    private static string? FindProductCode(string displayName)
+    private static string? FindUninstallString(string displayName)
     {
         string[] uninstallRoots =
         {
@@ -48,17 +40,14 @@ internal static class Program
         {
             foreach (string root in uninstallRoots)
             {
-                using RegistryKey baseKey64 = RegistryKey.OpenBaseKey(hive, RegistryView.Registry64);
-                using RegistryKey? uninstall64 = baseKey64.OpenSubKey(root);
-                string? result = FindInKey(uninstall64, displayName);
-                if (result != null)
-                    return result;
-
-                using RegistryKey baseKey32 = RegistryKey.OpenBaseKey(hive, RegistryView.Registry32);
-                using RegistryKey? uninstall32 = baseKey32.OpenSubKey(root);
-                result = FindInKey(uninstall32, displayName);
-                if (result != null)
-                    return result;
+                foreach (RegistryView view in new[] { RegistryView.Registry64, RegistryView.Registry32 })
+                {
+                    using RegistryKey baseKey = RegistryKey.OpenBaseKey(hive, view);
+                    using RegistryKey? uninstallKey = baseKey.OpenSubKey(root);
+                    string? result = FindInKey(uninstallKey, displayName);
+                    if (result != null)
+                        return result;
+                }
             }
         }
 
@@ -77,10 +66,53 @@ internal static class Program
             if (!string.Equals(name, displayName, StringComparison.OrdinalIgnoreCase))
                 continue;
 
-            string? productCode = subKey?.GetValue("ProductCode") as string;
-            return productCode ?? (subKeyName.StartsWith("{", StringComparison.Ordinal) ? subKeyName : null);
+            return subKey?.GetValue("UninstallString") as string;
         }
 
         return null;
+    }
+
+    private static ProcessStartInfo BuildUninstallStartInfo(string uninstallString)
+    {
+        // Windows may register an MSI uninstall command as:
+        // msiexec.exe /I{PRODUCT-CODE}
+        // The Programs and Features uninstall action uses this registered command.
+        // Convert /I to /X because this utility's sole purpose is removal.
+        string command = uninstallString.Trim();
+        int exeEnd = command.IndexOf(' ');
+        string fileName;
+        string arguments;
+
+        if (exeEnd > 0)
+        {
+            fileName = command[..exeEnd].Trim('"');
+            arguments = command[(exeEnd + 1)..].Trim();
+        }
+        else
+        {
+            fileName = command.Trim('"');
+            arguments = string.Empty;
+        }
+
+        if (fileName.EndsWith("msiexec.exe", StringComparison.OrdinalIgnoreCase))
+            arguments = ReplaceInstallSwitchWithUninstall(arguments);
+
+        return new ProcessStartInfo
+        {
+            FileName = fileName,
+            Arguments = arguments,
+            UseShellExecute = true,
+            Verb = "runas"
+        };
+    }
+
+    private static string ReplaceInstallSwitchWithUninstall(string arguments)
+    {
+        string result = arguments;
+        result = result.Replace(" /I{", " /X{", StringComparison.OrdinalIgnoreCase);
+        result = result.Replace(" /I {", " /X {", StringComparison.OrdinalIgnoreCase);
+        result = result.Replace(" /I\"{", " /X\"{", StringComparison.OrdinalIgnoreCase);
+        result = result.Replace(" /I \"{", " /X \"{", StringComparison.OrdinalIgnoreCase);
+        return result;
     }
 }
