@@ -12,5 +12,17 @@
     <Version>1.0.0</Version>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <FileVersion>1.0.0.0</FileVersion>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <PublishTrimmed>false</PublishTrimmed>
   </PropertyGroup>
+
+  <Target Name="PublishStandaloneUninstaller" AfterTargets="Build" Condition="'$(TarjimonUninstallerPublishRunning)' != 'true'">
+    <PropertyGroup>
+      <_UninstallerPublishDir>$(IntermediateOutputPath)standalone\</_UninstallerPublishDir>
+    </PropertyGroup>
+    <Exec Command="dotnet publish &quot;$(MSBuildProjectFullPath)&quot; -c $(Configuration) -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false -p:TarjimonUninstallerPublishRunning=true -p:PublishDir=&quot;$(_UninstallerPublishDir)&quot; --nologo" />
+    <Copy SourceFiles="$(_UninstallerPublishDir)$(AssemblyName).exe" DestinationFiles="$(TargetDir)$(AssemblyName).exe" SkipUnchangedFiles="false" />
+  </Target>
 </Project>
