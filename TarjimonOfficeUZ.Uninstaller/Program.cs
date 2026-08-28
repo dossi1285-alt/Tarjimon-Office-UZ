@@ -11,15 +11,9 @@ internal static class Program
         const string displayName = "Tarjimon Office UZ";
         string? productCode = FindProductCode(displayName);
 
+        // This utility has one job only: start Windows Installer uninstall.
         if (string.IsNullOrWhiteSpace(productCode))
-        {
-            MessageBox.Show(
-                "Tarjimon Office UZ topilmadi.",
-                "Tarjimon Office UZ — O‘chirish",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Information);
             return;
-        }
 
         try
         {
@@ -33,7 +27,7 @@ internal static class Program
         }
         catch (System.ComponentModel.Win32Exception)
         {
-            // User cancelled UAC or Windows Installer could not be started.
+            // UAC was cancelled or Windows Installer could not be started.
         }
     }
 
@@ -49,13 +43,17 @@ internal static class Program
         {
             foreach (string root in uninstallRoots)
             {
-                using RegistryKey? baseKey = RegistryKey.OpenBaseKey(hive, RegistryView.Registry64).OpenSubKey(root);
-                string? result = FindInKey(baseKey, displayName);
-                if (result != null) return result;
+                using RegistryKey baseKey64 = RegistryKey.OpenBaseKey(hive, RegistryView.Registry64);
+                using RegistryKey? uninstall64 = baseKey64.OpenSubKey(root);
+                string? result = FindInKey(uninstall64, displayName);
+                if (result != null)
+                    return result;
 
-                using RegistryKey? baseKey32 = RegistryKey.OpenBaseKey(hive, RegistryView.Registry32).OpenSubKey(root);
-                result = FindInKey(baseKey32, displayName);
-                if (result != null) return result;
+                using RegistryKey baseKey32 = RegistryKey.OpenBaseKey(hive, RegistryView.Registry32);
+                using RegistryKey? uninstall32 = baseKey32.OpenSubKey(root);
+                result = FindInKey(uninstall32, displayName);
+                if (result != null)
+                    return result;
             }
         }
 
@@ -64,16 +62,18 @@ internal static class Program
 
     private static string? FindInKey(RegistryKey? uninstallKey, string displayName)
     {
-        if (uninstallKey == null) return null;
+        if (uninstallKey == null)
+            return null;
 
         foreach (string subKeyName in uninstallKey.GetSubKeyNames())
         {
             using RegistryKey? subKey = uninstallKey.OpenSubKey(subKeyName);
             string? name = subKey?.GetValue("DisplayName") as string;
-            string? productCode = subKey?.GetValue("ProductCode") as string;
+            if (!string.Equals(name, displayName, StringComparison.OrdinalIgnoreCase))
+                continue;
 
-            if (string.Equals(name, displayName, StringComparison.OrdinalIgnoreCase))
-                return productCode ?? (subKeyName.StartsWith("{", StringComparison.Ordinal) ? subKeyName : null);
+            string? productCode = subKey?.GetValue("ProductCode") as string;
+            return productCode ?? (subKeyName.StartsWith("{", StringComparison.Ordinal) ? subKeyName : null);
         }
 
         return null;
