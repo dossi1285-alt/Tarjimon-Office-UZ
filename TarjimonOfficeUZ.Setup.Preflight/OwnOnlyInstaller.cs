@@ -272,7 +272,7 @@ namespace TarjimonOfficeUZ.Setup.Preflight
                     ? "O‘rnatish quyidagi joyga amalga oshiriladi:\r\n\r\n" + _folder.Text + "\r\n\r\nDavom etishni tasdiqlaysizmi?"
                     : "Tarjimon Office UZ allaqachon o‘rnatilgan.\r\n\r\n" +
                       "O‘rnatilgan versiya: " + (_own.DisplayVersion ?? "aniqlanmadi") + "\r\n" +
-                      "Yangi versiya: 1.1.1\r\n\r\n" +
+                      "Yangi versiya: 1.0.0\r\n\r\n" +
                       "O‘rnatish davomida eski versiya Windows Installer orqali olib tashlanib, yangi versiya o‘rnatiladi.\r\n\r\n" +
                       "Eski versiyani olib tashlab, yangi versiyani o‘rnatishga rozimisiz?";
                 AddText(text);
@@ -440,12 +440,6 @@ namespace TarjimonOfficeUZ.Setup.Preflight
 
             private void FinishInstall(int exitCode)
             {
-                try
-                {
-                    if (!string.IsNullOrWhiteSpace(_msiPath) && File.Exists(_msiPath)) File.Delete(_msiPath);
-                }
-                catch { }
-
                 _installing = false;
                 if (exitCode == 0 || exitCode == 3010)
                 {
@@ -454,8 +448,7 @@ namespace TarjimonOfficeUZ.Setup.Preflight
                     return;
                 }
 
-                MessageBox.Show("Windows Installer xatosi. Kod: " + exitCode,
-                    OwnDisplayName + " — Installer xatosi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Windows Installer xatosi. Kod: " + exitCode, OwnDisplayName + " — Installer xatosi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 _page = 3;
                 Render();
             }
