@@ -275,7 +275,7 @@ namespace TarjimonOfficeUZ.Setup.Preflight
                     ? "O‘rnatish quyidagi joyga amalga oshiriladi:\r\n\r\n" + _folder.Text + "\r\n\r\nDavom etishni tasdiqlaysizmi?"
                     : "Tarjimon Office UZ allaqachon o‘rnatilgan.\r\n\r\n" +
                       "O‘rnatilgan versiya: " + (_own.DisplayVersion ?? "aniqlanmadi") + "\r\n" +
-                      "Yangi versiya: 1.0.0\r\n\r\n" +
+                      "Yangi versiya: " + Application.ProductVersion + "\r\n\r\n" +
                       "O‘rnatish davomida eski versiya Windows Installer orqali olib tashlanib, yangi versiya o‘rnatiladi.\r\n\r\n" +
                       "Eski versiyani olib tashlab, yangi versiyani o‘rnatishga rozimisiz?";
                 AddText(text);
