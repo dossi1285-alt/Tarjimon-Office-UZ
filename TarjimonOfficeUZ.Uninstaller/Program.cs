@@ -17,13 +17,18 @@ internal static class Program
 
         try
         {
-            Process.Start(new ProcessStartInfo
+            using Process process = Process.Start(new ProcessStartInfo
             {
                 FileName = "msiexec.exe",
-                Arguments = $"/x {productCode}",
+                Arguments = $"/x {productCode} /qn /norestart",
                 UseShellExecute = true,
                 Verb = "runas"
-            });
+            })!;
+
+            // Do not exit until Windows Installer has completely finished.
+            // This prevents Office from being opened while MSI is still removing
+            // the add-in files and registrations.
+            process.WaitForExit();
         }
         catch (System.ComponentModel.Win32Exception)
         {
