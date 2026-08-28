@@ -6,7 +6,7 @@
     <AssemblyName>TarjimonOfficeUZSetup</AssemblyName>
     <StartupObject>TarjimonOfficeUZ.Setup.Preflight.InstallerFlow</StartupObject>
     <MsiSource>..\TarjimonOfficeUZ.Setup.Wix\bin\$(Configuration)\TarjimonOfficeUZ.msi</MsiSource>
-    <UninstallerSource>..\TarjimonOfficeUZ.Uninstaller\bin\$(Configuration)\net8.0-windows\publish\TarjimonOfficeUZUninstaller.exe</UninstallerSource>
+    <UninstallerSource>..\TarjimonOfficeUZ.Uninstaller\bin\$(Configuration)\net8.0-windows\win-x64\publish\TarjimonOfficeUZUninstaller.exe</UninstallerSource>
     <PlatformTarget>x64</PlatformTarget>
     <Prefer32Bit>false</Prefer32Bit>
     <LangVersion>9.0</LangVersion>
@@ -39,7 +39,7 @@
   </ItemGroup>
 
   <Target Name="BuildEmbeddedUninstaller" BeforeTargets="PrepareResources">
-    <Exec Command="dotnet publish &quot;$(MSBuildProjectDirectory)\..\TarjimonOfficeUZ.Uninstaller\TarjimonOfficeUZ.Uninstaller.csproj&quot; -c $(Configuration) -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:PublishTrimmed=false -p:TarjimonUninstallerPublishRunning=true -p:PublishDir=&quot;$(MSBuildProjectDirectory)\..\TarjimonOfficeUZ.Uninstaller\bin\$(Configuration)\net8.0-windows\publish\&quot; --nologo" />
+    <Exec Command="dotnet publish &quot;$(MSBuildProjectDirectory)\..\TarjimonOfficeUZ.Uninstaller\TarjimonOfficeUZ.Uninstaller.csproj&quot; -c $(Configuration) -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:PublishTrimmed=false -p:TarjimonUninstallerPublishRunning=true --nologo" />
     <Error Condition="!Exists('$(UninstallerSource)')" Text="Uninstaller build output topilmadi: $(UninstallerSource)" />
   </Target>
 
