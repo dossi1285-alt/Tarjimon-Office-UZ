@@ -61,6 +61,10 @@
       <LogicalName>TarjimonOfficeUZUninstaller.exe</LogicalName>
       <Type>Non-Resx</Type>
     </EmbeddedResource>
+    <EmbeddedResource Include="..\TarjimonOfficeUZ.Setup.Wix\License.rtf">
+      <LogicalName>TarjimonOfficeUZLicense.rtf</LogicalName>
+      <Type>Non-Resx</Type>
+    </EmbeddedResource>
   </ItemGroup>
 
   <Target Name="CopyFinalSetupToRepositoryRoot" AfterTargets="Build">
