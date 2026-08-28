@@ -1,23 +1,15 @@
 using System.Diagnostics;
-using System.Runtime.InteropServices;
-using Microsoft.Win32;
+using System.Windows.Automation;
 
 namespace TarjimonOfficeUZ.Uninstaller;
 
 internal static class Program
 {
-    private const string DisplayName = "Tarjimon Office UZ";
+    private const string ProductName = "Tarjimon Office UZ";
 
     [STAThread]
     private static void Main()
     {
-        string? uninstallKey = FindUninstallKey();
-        if (uninstallKey == null)
-            return;
-
-        // Open Windows' own Programs and Features page with our product selected.
-        // The user remains responsible for clicking Удалить and confirming Да/Нет/Далее.
-        string arguments = $"/pageName ProgramsAndFeatures /select \"{DisplayName}\"";
         Process.Start(new ProcessStartInfo
         {
             FileName = "control.exe",
@@ -25,43 +17,83 @@ internal static class Program
             UseShellExecute = true
         });
 
-        // Windows does not expose a supported command-line API for selecting a
-        // specific Programs and Features row. We therefore use the documented
-        // AppsFolder shell namespace when available as a best-effort selection.
-        TrySelectRegisteredProduct(uninstallKey);
+        // Wait for Programs and Features, select our product, then invoke
+        // Windows' own Удалить command. All later confirmations remain with the user.
+        for (int i = 0; i < 30; i++)
+        {
+            Thread.Sleep(500);
+            if (TrySelectAndStartUninstall())
+                return;
+        }
     }
 
-    private static string? FindUninstallKey()
+    private static bool TrySelectAndStartUninstall()
     {
-        string[] roots =
-        {
-            @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall",
-            @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall"
-        };
+        AutomationElement? window = AutomationElement.RootElement.FindFirst(
+            TreeScope.Children,
+            new OrCondition(
+                new PropertyCondition(AutomationElement.ClassNameProperty, "CabinetWClass"),
+                new PropertyCondition(AutomationElement.NameProperty, "Программы и компоненты"),
+                new PropertyCondition(AutomationElement.NameProperty, "Programs and Features")));
 
-        foreach (RegistryHive hive in new[] { RegistryHive.LocalMachine, RegistryHive.CurrentUser })
-        foreach (RegistryView view in new[] { RegistryView.Registry64, RegistryView.Registry32 })
+        if (window == null)
+            return false;
+
+        AutomationElement? item = FindProductItem(window);
+        if (item == null)
+            return false;
+
+        if (!item.TryGetCurrentPattern(SelectionItemPattern.Pattern, out object selectionObject))
+            return false;
+
+        ((SelectionItemPattern)selectionObject).Select();
+        Thread.Sleep(300);
+
+        AutomationElement? uninstall = FindUninstallControl(window);
+        if (uninstall == null)
+            return false;
+
+        if (!uninstall.TryGetCurrentPattern(InvokePattern.Pattern, out object invokeObject))
+            return false;
+
+        ((InvokePattern)invokeObject).Invoke();
+        return true;
+    }
+
+    private static AutomationElement? FindProductItem(AutomationElement window)
+    {
+        AutomationElementCollection elements = window.FindAll(
+            TreeScope.Descendants,
+            new OrCondition(
+                new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.ListItem),
+                new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.DataItem)));
+
+        foreach (AutomationElement element in elements)
         {
-            using RegistryKey baseKey = RegistryKey.OpenBaseKey(hive, view);
-            foreach (string root in roots)
-            {
-                using RegistryKey? key = baseKey.OpenSubKey(root);
-                if (key == null) continue;
-                foreach (string name in key.GetSubKeyNames())
-                {
-                    using RegistryKey? sub = key.OpenSubKey(name);
-                    if (string.Equals(sub?.GetValue("DisplayName") as string, DisplayName, StringComparison.OrdinalIgnoreCase))
-                        return $"{root}\\{name}";
-                }
-            }
+            string name = element.Current.Name ?? string.Empty;
+            if (name.Contains(ProductName, StringComparison.OrdinalIgnoreCase))
+                return element;
         }
+
         return null;
     }
 
-    private static void TrySelectRegisteredProduct(string uninstallKey)
+    private static AutomationElement? FindUninstallControl(AutomationElement window)
     {
-        // Deliberately no uninstall command is executed here. Windows' own
-        // Programs and Features UI remains in control of the uninstall flow.
-        _ = uninstallKey;
+        AutomationElementCollection controls = window.FindAll(
+            TreeScope.Descendants,
+            new OrCondition(
+                new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Button),
+                new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.MenuItem)));
+
+        foreach (AutomationElement control in controls)
+        {
+            string name = control.Current.Name ?? string.Empty;
+            if (name.Contains("Удалить", StringComparison.OrdinalIgnoreCase) ||
+                name.Contains("Uninstall", StringComparison.OrdinalIgnoreCase))
+                return control;
+        }
+
+        return null;
     }
 }
