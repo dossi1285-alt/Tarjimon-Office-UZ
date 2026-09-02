@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.IO;
 using Microsoft.Win32;
 
 namespace TarjimonOfficeUZ.Uninstaller;
@@ -48,7 +49,8 @@ internal static class Program
             return 1603;
 
         string arguments = command.Arguments;
-        bool isMsiExec = Path.GetFileName(command.FileName).Equals("msiexec.exe", StringComparison.OrdinalIgnoreCase);
+        bool isMsiExec = System.IO.Path.GetFileName(command.FileName)
+            .Equals("msiexec.exe", StringComparison.OrdinalIgnoreCase);
 
         if (isMsiExec)
         {
@@ -90,7 +92,9 @@ internal static class Program
         while (index >= 0)
         {
             bool leftBoundary = index == 0 || char.IsWhiteSpace(value[index - 1]);
-            bool rightBoundary = index + from.Length >= value.Length || char.IsWhiteSpace(value[index + from.Length]) || value[index + from.Length] == '{';
+            bool rightBoundary = index + from.Length >= value.Length ||
+                                 char.IsWhiteSpace(value[index + from.Length]) ||
+                                 value[index + from.Length] == '{';
             if (leftBoundary && rightBoundary)
                 return value.Substring(0, index) + to + value.Substring(index + from.Length);
             index = value.IndexOf(from, index + from.Length, StringComparison.OrdinalIgnoreCase);
